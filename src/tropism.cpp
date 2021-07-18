@@ -6,6 +6,7 @@
 #include "Organ.h"
 #include "Organism.h"
 #include "Root.h"
+#include <numeric>
 
 namespace CPlantBox {
 

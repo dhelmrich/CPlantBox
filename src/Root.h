@@ -33,6 +33,7 @@ public:
     std::shared_ptr<Organ> copy(std::shared_ptr<Organism> rs) override;  ///< deep copies the root tree
 
     int organType() const override { return Organism::ot_root; }; ///< returns the organs type
+    virtual std::string organName() const override;
 
     void simulate(double dt, bool silence = false) override; ///< root growth for a time span of @param dt
 

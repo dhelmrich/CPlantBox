@@ -1,8 +1,13 @@
+#ifdef FOR_TEST
+
 #include "Stem.h"
 
 #include "Leaf.h"
 #include "Root.h"
 #include "Plant.h"
+#include <numeric>
+
+
 
 namespace CPlantBox {
 
@@ -633,9 +638,9 @@ void Stem::createSegments(double l, bool verbose)
 			sdx = dx();
 		} else { // last segment
 			sdx = l-n*dx();
-			if (sdx<smallDx) { // quit if l is too small
+			if (sdx < std::numeric_limits<float>::epsilon()*8.f) { // quit if l is too small
 				if (verbose) {
-					std::cout << "skipped small segment ("<< sdx <<" < "<< smallDx << ") \n";
+					std::cout << "skipped small segment ("<< sdx <<" < "<< std::numeric_limits<float>::epsilon() * 8.f << ") \n";
 				}
 				return;
 			}
@@ -699,3 +704,5 @@ std::string Stem::toString() const
 
 
 } // namespace CPlantBox
+
+#endif

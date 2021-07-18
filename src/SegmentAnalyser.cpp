@@ -13,6 +13,7 @@
 #include <fstream>
 #include <set>
 #include <math.h>
+#include <numeric>
 
 namespace CPlantBox {
 

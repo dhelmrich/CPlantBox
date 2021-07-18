@@ -2,6 +2,7 @@
 #include "Leaf.h"
 #include "Root.h"
 #include "Plant.h"
+#include <numeric>
 
 namespace CPlantBox {
 

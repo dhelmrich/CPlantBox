@@ -1,5 +1,6 @@
 // -*- mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 #include "Root.h"
+#include <numeric>
 
 namespace CPlantBox {
 
@@ -75,6 +76,11 @@ std::shared_ptr<Organ> Root::copy(std::shared_ptr<Organism> rs)
         r->children[i]->setParent(r);
     }
     return r;
+}
+
+std::string Root::organName() const
+{
+  return "root";
 }
 
 /**

@@ -10,6 +10,7 @@
 #include <memory>
 #include <functional>
 #include <map>
+#include <string>
 
 namespace CPlantBox {
 
@@ -43,6 +44,7 @@ public:
     virtual std::shared_ptr<Organ> copy(std::shared_ptr<Organism> plant); ///< deep copies the organ tree
 
     virtual int organType() const; ///< returns the organs type, overwrite for each organ
+    virtual std::string organName() const;
 
     /* development */
     virtual void simulate(double dt, bool verbose = false); ///< grow for a time span of @param dt

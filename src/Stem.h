@@ -1,3 +1,4 @@
+#pragma once
 #ifndef STEM_H_
 #define STEM_H_
 

@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.8.12)
 project (CPlantBox)
 
+cmake_policy(SET CMP0054 OLD)
+cmake_policy(SET CMP0057 OLD)
+
 # set compiler options
 set(RELEASE_WARNING_OPTS "-Wall -Wunused -Wmissing-include-dirs -Wcast-align -Wno-sign-compare  ")
 set(DEBUG_WARNING_OPTS "-Wall -Wunused -Wmissing-include-dirs -Wcast-align -Wno-sign-compare ")

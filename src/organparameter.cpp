@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <exception>
+#include <numeric>
 
 namespace CPlantBox {
 

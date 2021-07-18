@@ -4,6 +4,7 @@
 #include "organparameter.h"
 #include "Organism.h"
 #include "RootDelay.h"
+#include <numeric>
 
 namespace CPlantBox {
 

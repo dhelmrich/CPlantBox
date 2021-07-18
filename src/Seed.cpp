@@ -3,6 +3,7 @@
 
 #include "Root.h"
 #include "Stem.h"
+#include <numeric>
 
 namespace CPlantBox {
 

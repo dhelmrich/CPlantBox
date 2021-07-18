@@ -3,6 +3,7 @@
 
 #include "Organism.h"
 #include <iostream>
+#include <numeric>
 
 #include "organparameter.h"
 
@@ -90,6 +91,11 @@ double Organ::getLength(bool realized) const
 int Organ::organType() const
 {
 	return Organism::ot_organ;
+}
+
+std::string Organ::organName() const
+{
+	return "organ";
 }
 
 /**

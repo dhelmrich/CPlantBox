@@ -3,9 +3,9 @@
 #include <memory>
 #include <iostream>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <string>
 #include <fstream>
+#include <numeric>
 
 namespace CPlantBox {
 
