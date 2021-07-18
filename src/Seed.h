@@ -27,6 +27,7 @@ public:
     std::shared_ptr<Organ> copy(std::shared_ptr<Organism> rs) override;  ///< deep copies the seed
 
     virtual int organType() const override { return Organism::ot_seed; }
+    virtual std::string organName() const override;
 
     virtual std::string toString() const override;
 

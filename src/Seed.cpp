@@ -199,6 +199,11 @@ int Seed::getParamSubType(int organtype, std::string str)
 	return -1;
 }
 
+std::string Seed::organName() const
+{
+	return "Seed";
+}
+
 /**
  * Quick info about the object for debugging
  * additionally, use getParam()->toString() and getOrganRandomParameter()->toString() to obtain all information.

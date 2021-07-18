@@ -720,6 +720,10 @@ std::string Stem::toString() const
 	return str+newstring.str();
 }
 
+std::string Stem::organName() const
+{
+  return "Stem";
+}
 
 
 

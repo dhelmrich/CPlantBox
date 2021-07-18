@@ -295,7 +295,7 @@ void Organ::writeRSML(tinyxml2::XMLDocument& doc, tinyxml2::XMLElement* parent) 
 		int nn = plant.lock()->getRSMLSkip()+1;
 		// organ
 		// std::string name = getOrganTypeParameter()->name; // todo where to put it
-		tinyxml2::XMLElement* organ = doc.NewElement("root"); // TODO use ot to fetch tag name?
+		tinyxml2::XMLElement* organ = doc.NewElement(organName().c_str()); // TODO use ot to fetch tag name?
 		organ->SetAttribute("ID", id);
 		// geometry
 		tinyxml2::XMLElement* geometry = doc.NewElement("geometry");

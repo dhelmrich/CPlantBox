@@ -97,6 +97,11 @@ std::shared_ptr<Organ> Leaf::copy(std::shared_ptr<Organism> p)
 	return l;
 }
 
+std::string Leaf::organName() const
+{
+	return "Leaf";
+}
+
 /**
  * Simulates f_gf of this leaf for a time span dt
  *
