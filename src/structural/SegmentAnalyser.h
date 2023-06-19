@@ -14,7 +14,6 @@ namespace CPlantBox {
 
 class Organism;
 class MappedSegments;
-class XylemFlux;
 
 /**
  * Meshfree analysis of the root system based on signed distance functions.
@@ -38,8 +37,6 @@ public:
 
     // to visualize results
     void addAge(double simtime);  // "age"
-    void addConductivities(const XylemFlux& xylem, double simtime); // "kr", "kx"
-    void addFluxes(XylemFlux& rs, const std::vector<double>& rx, const std::vector<double>& sx, double simTime); // "axial_flux", "radial_flux"
     void addCellIds(const MappedSegments& plant); // "cell_id"
 
     // reduce number of segments

@@ -28,13 +28,6 @@ namespace py = pybind11;
 #include "Plant.h"
 #include "MappedOrganism.h"
 
-// functional
-#include "Perirhizal.h"
-#include "XylemFlux.h"
-#include "ExudationModel.h"
-#include "Photosynthesis.h"
-#include "PiafMunch/runPM.h"
-
 // visualisation
 #include "Quaternion.h"
 #include "CatmullRomSpline.h"
@@ -242,7 +235,8 @@ PYBIND11_MODULE(plantbox, m) {
     py::class_<SDF_PlantContainer, SignedDistanceFunction, std::shared_ptr<SDF_PlantContainer>>(m,"SDF_PlantContainer")
             .def(py::init<>())
             .def(py::init<double,double,double,double>());
-    py::class_<SDF_RotateTranslate, SignedDistanceFunction, std::shared_ptr<SDF_RotateTranslate>>(m, "SDF_RotateTranslate")
+    py::class_<SDF_RotateTranslate, std::shared_ptr<SDF_RotateTranslate>>(m, "SDF_RotateTranslate")
+            .def("getDist", &SDF_RotateTranslate::getDist)
             .def(py::init<std::shared_ptr<SignedDistanceFunction>,double,int,Vector3d&>())
             .def(py::init<std::shared_ptr<SignedDistanceFunction>,Vector3d&>());
     py::enum_<SDF_RotateTranslate::SDF_Axes>(m, "SDF_Axis")
@@ -522,8 +516,6 @@ PYBIND11_MODULE(plantbox, m) {
            .def("addSegments",(void (SegmentAnalyser::*)(const SegmentAnalyser&)) &SegmentAnalyser::addSegments) //overloads
            .def("addSegment", &SegmentAnalyser::addSegment, py::arg("seg"), py::arg("ct"), py::arg("radius"), py::arg("insert") = false)
            .def("addAge", &SegmentAnalyser::addAge)
-           .def("addConductivities", &SegmentAnalyser::addConductivities)
-           .def("addFluxes", &SegmentAnalyser::addFluxes)
            .def("addCellIds", &SegmentAnalyser::addCellIds)
            .def("crop", &SegmentAnalyser::crop)
            .def("cropDomain", &SegmentAnalyser::cropDomain)
@@ -925,210 +917,6 @@ PYBIND11_MODULE(plantbox, m) {
 			.def_readwrite("bladeLength",  &MappedPlant::bladeLength)
 			.def("getNodeIds",&MappedPlant::getNodeIds);
 
-	/**
-	 * Perirhizal.h
-	 */
-    py::class_<Perirhizal, std::shared_ptr<Perirhizal>> (m, "Perirhizal")
-           .def(py::init<>())
-           .def(py::init<std::shared_ptr<MappedSegments>>())
-           .def("segOuterRadii",&Perirhizal::segOuterRadii,  py::arg("type"), py::arg("vols") = std::vector<double>(0))
-           .def_readwrite("ms",  &Perirhizal::ms);
-
-    /*
-     * XylemFlux.h
-     */
-    py::class_<XylemFlux, std::shared_ptr<XylemFlux>>(m, "XylemFlux")
-            .def(py::init<std::shared_ptr<CPlantBox::MappedSegments>>())
-            .def(py::init<std::shared_ptr<CPlantBox::MappedPlant>>())
-            .def("setKr",py::overload_cast<std::vector<double>, std::vector<double>> (&XylemFlux::setKr), py::arg("values"), py::arg("age") = std::vector<double>(0))
-            .def("setKx",py::overload_cast<std::vector<double>, std::vector<double>> (&XylemFlux::setKx), py::arg("values"), py::arg("age") = std::vector<double>(0))
-            .def("setKrTables",py::overload_cast<std::vector<std::vector<double>>, std::vector<std::vector<double>>> (&XylemFlux::setKrTables))
-            .def("setKxTables",py::overload_cast<std::vector<std::vector<double>>, std::vector<std::vector<double>>> (&XylemFlux::setKxTables))
-            .def("setKr",py::overload_cast<std::vector<std::vector<double>>,std::vector<std::vector<double>>, double> (&XylemFlux::setKr), py::arg("values"), py::arg("age") = std::vector<std::vector<double>>(0),
-                                                                        py::arg("kr_length_") = -1.0)
-            .def("setKx",py::overload_cast<std::vector<std::vector<double>>,std::vector<std::vector<double>>> (&XylemFlux::setKx), py::arg("values"), py::arg("age") = std::vector<std::vector<double>>(0))
-            .def("setKrTables",py::overload_cast<std::vector<std::vector<std::vector<double>>>, std::vector<std::vector<std::vector<double>>>> (&XylemFlux::setKrTables))
-            .def("setKxTables",py::overload_cast<std::vector<std::vector<std::vector<double>>>, std::vector<std::vector<std::vector<double>>>> (&XylemFlux::setKxTables))
-            .def("setKrValues", &XylemFlux::setKrValues)
-            .def("setKxValues", &XylemFlux::setKxValues)
-            .def("getEffKr", &XylemFlux::getEffKr)
-            .def("getKr", &XylemFlux::getKr)
-            .def("getKx", &XylemFlux::getKx)
-            .def("linearSystem",&XylemFlux::linearSystem, py::arg("simTime") , py::arg("sx") , py::arg("cells") = true,
-                    py::arg("soil_k") = std::vector<double>())
-            .def("soilFluxes",&XylemFlux::soilFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false,
-                    py::arg("soil_k") = std::vector<double>())
-            .def("segFluxes",&XylemFlux::segFluxes, py::arg("simTime"), py::arg("rx"), py::arg("sx"), py::arg("approx") = false,
-                    py::arg("cells") = false, py::arg("soil_k") = std::vector<double>())
-            .def("sumSegFluxes",&XylemFlux::sumSegFluxes)
-            .def("splitSoilFluxes",&XylemFlux::splitSoilFluxes, py::arg("soilFluxes"), py::arg("type") = 0)
-            .def_readonly("kr_f_cpp", &XylemFlux::kr_f)
-            .def_readonly("kx_f_cpp", &XylemFlux::kx_f)
-            .def_readwrite("aI", &XylemFlux::aI)
-            .def_readwrite("aJ", &XylemFlux::aJ)
-            .def_readwrite("aV", &XylemFlux::aV)
-            .def_readwrite("aB", &XylemFlux::aB)
-            .def_readwrite("kr", &XylemFlux::kr)
-            .def_readwrite("kx", &XylemFlux::kx)
-            .def_readwrite("rs", &XylemFlux::rs)
-            .def_readwrite("psi_air", &XylemFlux::psi_air);
-
-
-	/*
-     * Photosynthesis.h
-     */
-    py::class_<Photosynthesis, XylemFlux, std::shared_ptr<Photosynthesis>>(m, "Photosynthesis")
-            .def(py::init<std::shared_ptr<CPlantBox::MappedPlant>, double, double>(),  py::arg("plant_"),  py::arg("psiXylInit") ,  py::arg("ciInit"))
-			.def("solve_photosynthesis",&Photosynthesis::solve_photosynthesis, py::arg("ea_"),py::arg("es_") ,
-			py::arg("sim_time_")=1.0 ,
-					py::arg("sxx_") = std::vector<double>(1,-200.0)  ,
-					 py::arg("cells_") = true,py::arg("soil_k_") = std::vector<double>(),
-					py::arg("doLog_")=false, py::arg("verbose_")=true,  py::arg("TairC_") = 25,  py::arg("outputDir_")="")
-
-            .def_readwrite("psiXyl_old", &Photosynthesis::psiXyl_old)
-            .def_readwrite("psiXyl4Phloem", &Photosynthesis::psiXyl4Phloem)
-            .def_readwrite("maxErrLim", &Photosynthesis::maxErrLim)
-            .def_readwrite("maxErrAbsLim", &Photosynthesis::maxErrAbsLim)
-            .def_readwrite("maxErr", &Photosynthesis::maxErr)
-            .def_readwrite("maxErrAbs", &Photosynthesis::maxErrAbs)
-			.def_readwrite("psiXyl", &Photosynthesis::psiXyl)
-            .def_readwrite("An", &Photosynthesis::An)
-            .def_readwrite("Vc", &Photosynthesis::Vc)
-            .def_readwrite("Vcrefmax", &Photosynthesis::Vcrefmax)
-            .def_readwrite("Jrefmax", &Photosynthesis::Jrefmax)
-            .def_readwrite("Jrefmax", &Photosynthesis::Jrefmax)
-            .def_readwrite("Vj", &Photosynthesis::Vj)
-            .def_readwrite("fw", &Photosynthesis::fw)
-            .def_readwrite("fwr", &Photosynthesis::fwr)
-            .def_readwrite("sh", &Photosynthesis::sh)
-            .def_readwrite("p_lcrit", &Photosynthesis::p_lcrit)
-            .def_readwrite("ci", &Photosynthesis::ci)
-            .def_readwrite("deltagco2", &Photosynthesis::deltagco2)
-            .def_readwrite("delta", &Photosynthesis::delta)
-            .def_readwrite("oi", &Photosynthesis::oi)
-            .def_readwrite("Rd", &Photosynthesis::Rd)
-            .def_readwrite("gco2", &Photosynthesis::gco2)
-            .def_readwrite("es", &Photosynthesis::es)
-            .def_readwrite("ea", &Photosynthesis::ea)
-            .def_readwrite("gm",&Photosynthesis::gm)
-            .def_readwrite("PVD",&Photosynthesis::PVD)
-            .def_readwrite("EAL",&Photosynthesis::EAL)
-            .def_readwrite("hrelL",&Photosynthesis::hrelL)
-            .def_readwrite("pg",&Photosynthesis::pg)
-            .def_readwrite("Qlight", &Photosynthesis::Qlight)
-            .def_readwrite("Jw", &Photosynthesis::Jw)
-            .def_readwrite("Ev", &Photosynthesis::Ev)
-            .def_readwrite("plant", &Photosynthesis::plant)
-            .def_readwrite("Ag4Phloem", &Photosynthesis::Ag4Phloem)
-            .def_readwrite("minLoop", &Photosynthesis::minLoop)
-            .def_readwrite("maxLoop", &Photosynthesis::maxLoop)
-            .def_readwrite("loop", &Photosynthesis::loop)
-            .def_readwrite("Patm", &Photosynthesis::Patm)
-            .def_readwrite("cs", &Photosynthesis::cs)
-            .def_readwrite("TleafK", &Photosynthesis::TleafK)
-            .def_readwrite("TairC", &Photosynthesis::TairC)
-            .def_readwrite("Chl", &Photosynthesis::Chl)
-            .def_readwrite("g0", &Photosynthesis::g0)
-            .def_readwrite("g_bl", &Photosynthesis::g_bl)
-            .def_readwrite("g_canopy", &Photosynthesis::g_canopy)
-            .def_readwrite("g_air", &Photosynthesis::g_air)
-            .def_readwrite("theta", &Photosynthesis::theta)
-            .def_readwrite("gamma0", &Photosynthesis::gamma0)
-            .def_readwrite("gamma1", &Photosynthesis::gamma1)
-            .def_readwrite("gamma2", &Photosynthesis::gamma2)
-            .def_readwrite("alpha", &Photosynthesis::alpha)
-            .def_readwrite("a1", &Photosynthesis::a1)
-            .def_readwrite("a2_stomata", &Photosynthesis::a2_stomata)
-            .def_readwrite("a2_bl", &Photosynthesis::a2_bl)
-            .def_readwrite("a2_canopy", &Photosynthesis::a2_canopy)
-            .def_readwrite("a2_air", &Photosynthesis::a2_air)
-            .def_readwrite("a3", &Photosynthesis::a3)
-            .def_readwrite("Rd_ref", &Photosynthesis::Rd_ref)
-            .def_readwrite("Kc_ref", &Photosynthesis::Kc_ref)
-            .def_readwrite("VcmaxrefChl1", &Photosynthesis::VcmaxrefChl1)
-            .def_readwrite("VcmaxrefChl2", &Photosynthesis::VcmaxrefChl2)
-            .def_readwrite("outputFlux", &Photosynthesis::outputFlux)
-            .def_readwrite("outputFlux_old", &Photosynthesis::outputFlux_old)
-            .def_readwrite("doLog", &Photosynthesis::doLog)
-            .def_readwrite("R_ph", &Photosynthesis::R_ph);
-
-	/*
-     * runPM.h
-     */
-    py::class_<PhloemFlux, Photosynthesis, std::shared_ptr<PhloemFlux>>(m, "PhloemFlux")
-            .def(py::init<std::shared_ptr<CPlantBox::MappedPlant>, double, double>(),  py::arg("plant_"),
-			py::arg("psiXylInit"),  py::arg("ciInit") )
-            .def("waterLimitedGrowth",&PhloemFlux::waterLimitedGrowth)
-            .def("setKr_st",&PhloemFlux::setKr_st, py::arg("values"), py::arg("kr_length_") = -1.0)
-
-            .def("setKx_st",&PhloemFlux::setKx_st)
-            .def("setRmax_st",&PhloemFlux::setRmax_st)
-            .def("setAcross_st",&PhloemFlux::setAcross_st)
-            .def("setRhoSucrose",&PhloemFlux::setRhoSucrose)
-            .def("setKrm1",&PhloemFlux::setKrm1)
-            .def("setKrm2",&PhloemFlux::setKrm2)
-			.def("startPM",&PhloemFlux::startPM)
-            .def_readonly("rhoSucrose_f",&PhloemFlux::rhoSucrose_f)
-            .def_readwrite("psiMin", &PhloemFlux::psiMin)
-
-            .def_readwrite("Q_out",&PhloemFlux::Q_outv)
-            .def_readwrite("Q_init",&PhloemFlux::Q_init)
-            .def_readwrite("Q_out_dot",&PhloemFlux::Q_out_dotv)
-            .def_readwrite("a_ST",&PhloemFlux::a_STv)
-            .def_readwrite("vol_ST",&PhloemFlux::vol_STv)
-            .def_readwrite("vol_Meso",&PhloemFlux::vol_Mesov)
-            .def_readwrite("CSTimin",&PhloemFlux::CSTimin)
-            .def_readwrite("C_ST",&PhloemFlux::C_STv)
-            .def_readwrite("r_ST_ref",&PhloemFlux::r_ST_refv)
-            .def_readwrite("r_ST",&PhloemFlux::r_STv)
-            .def_readwrite("delta_ls",&PhloemFlux::delta_ls)
-            .def_readwrite("delta_ls_org_i",&PhloemFlux::delta_ls_org_i)
-            .def_readwrite("delta_suc_org",&PhloemFlux::delta_suc_org)
-            .def_readwrite("delta_ls_org",&PhloemFlux::delta_ls_org)
-            .def_readwrite("delta_ls_org_imax",&PhloemFlux::delta_ls_org_imax)
-            .def_readwrite("delta_ls_org_max",&PhloemFlux::delta_ls_org_max)
-            .def_readwrite("update_viscosity",&PhloemFlux::update_viscosity_)
-            .def_readwrite("AgPhl",&PhloemFlux::Agv)
-            .def_readwrite("Q_Grmax",&PhloemFlux::Q_Grmaxv)
-            .def_readwrite("Q_Exudmax",&PhloemFlux::Q_Exudmaxv)
-            .def_readwrite("Q_Rmmax",&PhloemFlux::Q_Rmmaxv)
-            .def_readwrite("Fl",&PhloemFlux::Flv)
-            //.def_readwrite("KMgr",&PhloemFlux::KMgr)
-            .def_readwrite("KMfu",&PhloemFlux::KMfu)
-            //.def_readwrite("k_meso",&PhloemFlux::k_meso)
-            .def_readwrite("Csoil",&PhloemFlux::Csoil)
-            .def_readwrite("deltaSucOrgNode",&PhloemFlux::deltaSucOrgNode_)
-            .def_readwrite("usePsiXyl",&PhloemFlux::usePsiXyl)
-            .def_readwrite("expression",&PhloemFlux::expression)
-            .def_readwrite("JW_ST",&PhloemFlux::JW_STv)
-            .def_readwrite("Gr_Y",&PhloemFlux::Gr_Y)
-            .def_readwrite("solver",&PhloemFlux::solver)
-            .def_readwrite("atol",&PhloemFlux::atol_double)
-            .def_readwrite("rtol",&PhloemFlux::rtol_double)
-            .def_readwrite("surfMeso",&PhloemFlux::surfMeso)
-			.def_readwrite("sameVolume_meso_st",&PhloemFlux::sameVolume_meso_st)
-			.def_readwrite("sameVolume_meso_seg",&PhloemFlux::sameVolume_meso_seg)
-			//.def_readwrite("Cobj_ST",&PhloemFlux::Cobj_ST)
-			.def_readwrite("Vmaxloading",&PhloemFlux::Vmaxloading)
-			.def_readwrite("useCWGr",&PhloemFlux::useCWGr)
-			.def_readwrite("beta_loading",&PhloemFlux::beta_loading)
-			.def_readwrite("Mloading",&PhloemFlux::Mloading)
-			.def_readwrite("withInitVal",&PhloemFlux::withInitVal)
-			.def_readwrite("initValST",&PhloemFlux::initValST)
-			.def_readwrite("initValMeso",&PhloemFlux::initValMeso)
-			.def_readwrite("doTroubleshooting",&PhloemFlux::doTroubleshooting)
-			.def_readwrite("Q_GrUnbornv_i",&PhloemFlux::Q_GrUnbornv_i)
-			.def_readwrite("Q_GrmaxUnbornv_i",&PhloemFlux::Q_GrmaxUnbornv_i)
-			.def_readwrite("Fpsi",&PhloemFlux::Fpsi)
-			.def_readwrite("Flen",&PhloemFlux::Flen)
-			.def_readwrite("Q10",&PhloemFlux::Q10)
-			.def_readwrite("TrefQ10",&PhloemFlux::TrefQ10)
-			.def_readwrite("leafGrowthZone",&PhloemFlux::leafGrowthZone)
-			.def_readwrite("StemGrowthPerPhytomer",&PhloemFlux::StemGrowthPerPhytomer)
-			.def_readwrite("GrowthZone",&PhloemFlux::GrowthZone)
-			.def_readwrite("GrowthZoneLat",&PhloemFlux::GrowthZoneLat)
-			.def_readwrite("psi_osmo_proto",&PhloemFlux::psi_osmo_proto)
-			.def_readwrite("psi_p_symplasm",&PhloemFlux::psi_p_symplasm);
 
     py::class_<PlantVisualiser, std::shared_ptr<PlantVisualiser>>(m, "PlantVisualiser")
         .def(py::init<>())
@@ -1162,28 +950,6 @@ PYBIND11_MODULE(plantbox, m) {
              .value("linear", Plant::GrowthFunctionTypes::gft_linear)
              .value("CWLim", Plant::GrowthFunctionTypes::gft_CWLim)
              .export_values();
-
-    py::class_<ExudationModel, std::shared_ptr<ExudationModel>>(m, "ExudationModel")
-            .def(py::init<double, double, int, std::shared_ptr<RootSystem>>())
-            .def(py::init<double, double, double, int, int, int, std::shared_ptr<RootSystem>>())
-            .def_readwrite("Q", &ExudationModel::Q)
-            .def_readwrite("Dl", &ExudationModel::Dl)
-            .def_readwrite("theta", &ExudationModel::theta)
-            .def_readwrite("R", &ExudationModel::R)
-            .def_readwrite("k", &ExudationModel::k)
-            .def_readwrite("l", &ExudationModel::l)
-            .def_readwrite("type", &ExudationModel::type)
-            .def_readwrite("n0", &ExudationModel::n0)
-            .def_readwrite("thresh13", &ExudationModel::thresh13)
-            .def_readwrite("calc13", &ExudationModel::calc13)
-            .def_readwrite("observationRadius", &ExudationModel::observationRadius)
-            .def("calculate",  &ExudationModel::calculate, py::arg("tend"), py::arg("i0") = 0, py::arg("iend")=-1);
-    py::enum_<ExudationModel::IntegrationType>(m, "IntegrationType")
-            .value("mps_straight", ExudationModel::IntegrationType::mps_straight )
-            .value("mps", ExudationModel::IntegrationType::mps )
-            .value("mls", ExudationModel::IntegrationType::mls )
-            .export_values();
-
 
 
     //   /*

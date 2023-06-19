@@ -1,5 +1,5 @@
 """root system length over time"""
-import sys; sys.path.append("../.."); sys.path.append("../../src/"); sys.path.append("./"); sys.path.append("./src/")
+import sys; sys.path.append("../../build"); sys.path.append("../../src/"); sys.path.append("./"); sys.path.append("./src/")
 
 import plantbox as pb
 import visualisation.vtk_plot as vp
@@ -7,7 +7,7 @@ import visualisation.vis_tools as cpbvis
 
 import numpy as np
 
-filename = "../../modelparameter/structural/plant/vis_example_plant_maize.xml"
+filename = "./vis_example_plant_maize.xml"
 output = "./results/vis_plant"
 
 time = 28
