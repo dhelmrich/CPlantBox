@@ -18,7 +18,7 @@ def ConfinePointsToBox(points : np.ndarray, box : np.ndarray) :
   # end for
   return points
 
-def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None ) :
+def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None, floattype: str = "float32", inttype: str = "int32") :
   """Create a vtkPolyData object from a plantbox plant geometry"""
   if not vis.HasGeometry() :
     return None
@@ -27,7 +27,7 @@ def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None
   pd.Reset()
   points = vtk.vtkPoints()
   points.Reset()
-  geom = np.array(vis.GetGeometry())
+  geom = np.array(vis.GetGeometry()).astype(floattype)
   geom = np.reshape(geom, (geom.shape[0]//3, 3))
   num_points = geom.shape[0]
   if box is not None :
@@ -35,20 +35,20 @@ def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None
   geom = vtknp.numpy_to_vtk(geom, deep=True)
   geom.SetName("points")
   points.SetData(geom)
-  nodeids = np.array(vis.GetGeometryNodeIds())
+  nodeids = np.array(vis.GetGeometryNodeIds()).astype(inttype)
   if vis.GetVerbose() :
     print(nodeids.shape)
   nodeids = vtknp.numpy_to_vtk(nodeids, deep=True)
   nodeids.SetName("nodeids")
   pd.GetPointData().AddArray(nodeids)
-  texcoords = np.array(vis.GetGeometryTextureCoordinates())
+  texcoords = np.array(vis.GetGeometryTextureCoordinates()).astype(floattype)
   if vis.GetVerbose() :
     print(texcoords.shape)
   texcoords = np.reshape(texcoords, (texcoords.shape[0]//2, 2))
   texcoords = vtknp.numpy_to_vtk(texcoords, deep=True)
   texcoords.SetName("tcoords")
   pd.GetPointData().AddArray(texcoords)
-  normals = np.array(vis.GetGeometryNormals())
+  normals = np.array(vis.GetGeometryNormals()).astype(floattype)
   if vis.GetVerbose() :
     print(normals.shape)
   normals = np.reshape(normals, (normals.shape[0]//3, 3))
@@ -56,7 +56,7 @@ def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None
   normals.SetName("normals")
   pd.GetPointData().AddArray(normals)
   # end for
-  cell_data = np.array(vis.GetGeometryIndices())
+  cell_data = np.array(vis.GetGeometryIndices()).astype(inttype)
   cell_data = np.reshape(cell_data, (cell_data.shape[0]//3, 3))
   cells = vtk.vtkCellArray()
   for i in range(cell_data.shape[0]) :

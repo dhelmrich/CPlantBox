@@ -28,6 +28,8 @@ os.chdir(pwd)
 import plantbox as pb
 import visualisation.vtk_plot as vp
 import visualisation.vis_tools as cpbvis
+import vtk
+from vtk.util import numpy_support as vn
 
 filename = "./vis_example_plant_maize.xml"
 output_folder = "./results/"
@@ -54,11 +56,11 @@ plant = pb.MappedPlant()
 plant.setGeometry(rhizotron)
 plant.readParameters(filename)
 vis = pb.PlantVisualiser(plant)
-vis.SetVerbose(False)
 
 time = 20
 time_resolution = 2
-mode = 0 # 0 = time, 1 = end
+mode = 1 # 0 = time, 1 = end
+vis.SetVerbose(mode == 1)
 
 for p in plant.getOrganRandomParameter(pb.stem):
   p.r = 0.758517633
@@ -87,32 +89,46 @@ vis.SetGeometryResolution(8)
 vis.SetLeafResolution(leaf_res)
 vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
 
+def organvis(vis,data) :
+  organs = vis.IdentifyOrgans()
+  idmax = np.max(organs)
+  idmin = np.min(organs)
+  data.GetPointData().AddArray(organs, "organ")
+
 if mode == 0 :
   for i in tqdm(range(time * time_resolution), desc="Sim+Vis", unit="day", unit_scale=True) :
     # Simulate
     plant.simulate(1. / time_resolution, False)
     vis.ComputeGeometryForOrganType(pb.leaf, True)
     data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
     cpbvis.WritePolydataToFile(data, output + "_leaf_" + str(i) + ".vtp")
     vis.ComputeGeometryForOrganType(pb.stem, True)
     data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
     cpbvis.WritePolydataToFile(data, output + "_stem_" + str(i) + ".vtp")
     vis.ComputeGeometryForOrganType(pb.root, True)
     data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
     cpbvis.WritePolydataToFile(data, output + "_root_" + str(i) + ".vtp")
   #endfor
 elif mode == 1 :
   plant.simulate(time, False)
   vis.ResetGeometry()
   vis.ComputeGeometry()
-  node_ids = vis.GetNodeIds()
-  idmax = np.max(node_ids)
-  idmin = np.min(node_ids)
-  vis.MapPropertyToColors(node_ids, idmin, idmax)
+  organs = vis.IdentifyOrgans()
+  idmax = np.max(organs)
+  idmin = np.min(organs)
+  #vis.MapPropertyToColors(organs, idmin, idmax)
   #vis.ComputeGeometryForOrganType(pb.leaf, False)
   #vis.ComputeGeometryForOrganType(pb.stem, False)
   #vis.ComputeGeometry()
   # Write the geometry to file#
   data = cpbvis.PolydataFromPlantGeometry(vis)
+  organs = vn.numpy_to_vtk(organs, deep=True, array_type=vtk.VTK_INT)
+  organs.SetName("organ")
+  data.GetPointData().AddArray(organs)
   cpbvis.WritePolydataToFile(data, output + ".vtp")
+  print("Wrote " + output + ".vtp")
+#end if
 

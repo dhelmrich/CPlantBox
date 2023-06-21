@@ -111,6 +111,11 @@ void PlantVisualiser::setPlant(const std::shared_ptr<MappedPlant>& plant) {
   BuildAttachmentMap();
 }
 
+std::vector<int> PlantVisualiser::IdentifyOrgans() const
+{
+  return geometry_organ_id_;
+}
+
 void PlantVisualiser::ComputeGeometryForOrgan(int organId)
 {
   auto result = plant_->getOrgans(-1, false);
@@ -206,6 +211,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
     geometry_indices_.clear();
     geometry_texture_coordinates_.clear();
     geometry_node_ids_.clear();
+    geometry_organ_id_.clear();
   }
   geometry_.reserve(geometry_.size() + point_space);
   geometry_normals_.reserve(geometry_normals_.size() + point_space);
@@ -213,6 +219,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
   geometry_indices_.reserve(geometry_indices_.size() + cell_space);
   geometry_texture_coordinates_.reserve(geometry_texture_coordinates_.size() + point_space);
   geometry_node_ids_.reserve(geometry_node_ids_.size() + (point_space / 3 + 1));
+  geometry_organ_id_.reserve(geometry_organ_id_.size() + (point_space / 3 + 1));
 
 
   point_space = 0;
@@ -300,6 +307,7 @@ void PlantVisualiser::ComputeGeometry()
     std::cout << "Geometry Colors size: " << geometry_colors_.size() << std::endl;
     std::cout << "Geometry Texture Coordinates size: " << geometry_texture_coordinates_.size() << std::endl;
     std::cout << "Geometry Node Ids size: " << geometry_node_ids_.size() << std::endl;
+    std::cout << "Geometry Organ Ids size: " << geometry_organ_id_.size() << std::endl;
     std::cout << "This would mean we have " << geometry_.size() / 3 << " points and " << geometry_indices_.size() / 3 << " cells." << std::endl;
   }
 }
@@ -313,9 +321,10 @@ void PlantVisualiser::ResetGeometry()
   geometry_indices_.clear();
   geometry_texture_coordinates_.clear();
   geometry_node_ids_.clear();
+  geometry_organ_id_.clear();
 }
 
-void PlantVisualiser::MapPropertyToColors(std::vector<double> property, std::pair<double, double> minMax)
+void PlantVisualiser::MapPropertyToColors(std::vector<double> property, double minv, double maxv)
 {
   // TODO: This is a very naive implementation. It should be improved or outsourced to Unreal.
   geometry_colors_.clear();
@@ -323,8 +332,8 @@ void PlantVisualiser::MapPropertyToColors(std::vector<double> property, std::pai
   for(int i = 0; i < geometry_colors_.size(); i++)
   {
     double value = property[i];
-    double range = minMax.second - minMax.first;
-    double normalized = (value - minMax.first) / range;
+    double range = maxv - minv;
+    double normalized = (value - minv) / range;
     // cast the double to the unsigned short
     geometry_colors_[i] = static_cast<unsigned short>(normalized * 65535.0);
   }
@@ -357,6 +366,7 @@ void PlantVisualiser::GenerateLeafGeometry(std::shared_ptr<Leaf> leaf, unsigned 
 	geometry_colors_.resize(std::max(static_cast<std::size_t>((p_o/3) + total_points * 4 * 3), geometry_colors_.size()), static_cast<unsigned short>(-1));
 	geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3*2) + total_points * 4 * 2), geometry_texture_coordinates_.size()), -1.0);
 	geometry_node_ids_.resize(std::max(static_cast<std::size_t>(p_o/3 + total_points * 4), geometry_node_ids_.size()), -1);
+  geometry_organ_id_.resize(std::max(static_cast<std::size_t>(p_o/3 + total_points * 4), geometry_organ_id_.size()), -1);
 
   //std::cout << "Orientation generation" << std::endl;
   unsigned int points_index = p_o;
@@ -399,13 +409,10 @@ void PlantVisualiser::GenerateLeafGeometry(std::shared_ptr<Leaf> leaf, unsigned 
                                             {currentLength, 0.0, currentLength, 1.0});
     //std::cout << "geometry_node_ids_[" << points_index << "] = " << id << std::endl;
     //std::cout << "Vector Data: Size=" << geometry_node_ids_.size() << ", capacity=" << geometry_node_ids_.capacity() << std::endl;
-    geometry_node_ids_[points_index] = id;
-    geometry_node_ids_[points_index + 1] = id;
-    // TODO: it not obvious that points_index can be changed by the insert here
-    vec2Buf(geometry_, points_index, vis[0], vis[1]);
-    points_index = vec2Buf(geometry_normals_, points_index, rot.Up(), rot.Up());
     geometry_node_ids_[points_index/3] = id;
+    geometry_organ_id_[points_index/3] = leaf->getId();
     geometry_node_ids_[(points_index/3) + 1] = id;
+    geometry_organ_id_[(points_index/3) + 1] = leaf->getId();
     vec2Buf(geometry_, points_index, vis[0], vis[1]);
     points_index = vec2Buf(geometry_normals_, points_index ,-rot.Up(), -rot.Up());
     // The triangles are defined clockwise for the front face and counter clockwise for the back face
@@ -445,6 +452,7 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
   geometry_colors_.resize(std::max(static_cast<std::size_t>(p_o + stem->getNumberOfNodes() * geometry_resolution_), geometry_colors_.size()),static_cast<unsigned short>(-1));
   geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3*2) + stem->getNumberOfNodes() * geometry_resolution_ * 2), geometry_texture_coordinates_.size()),-1.0);
   geometry_node_ids_.resize(std::max(static_cast<std::size_t>((p_o/3) + stem->getNumberOfNodes() * geometry_resolution_), geometry_node_ids_.size()),-1);
+  geometry_organ_id_.resize(std::max(static_cast<std::size_t>((p_o/3) + stem->getNumberOfNodes() * geometry_resolution_), geometry_organ_id_.size()),-1);
   Quaternion lastRotation = Quaternion::geodesicRotation({1,0,0},{0,0,1});
 
   for(auto i = 0; i < stem->getNumberOfNodes(); ++i)
@@ -522,6 +530,7 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
       geometry_normals_[3 * (i * geometry_resolution_ + j) + 2 + p_o] = outer.z;
 
       geometry_node_ids_[i * geometry_resolution_ + j + point_index_offset] = stem->getNodeId(i);
+      geometry_organ_id_[i * geometry_resolution_ + j + point_index_offset] = stem->getId();
 
       geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 0 + point_index_offset*2] = i / (double)stem->getNumberOfNodes();
       geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 1 + point_index_offset*2] = phi / (2.0 * M_PI);
@@ -603,13 +612,13 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 				//std::cout << "Adding Ts : " << last_amount << "/" << current_amount << std::endl;
 			if(last_amount != current_amount)
 			{
-				index_buffer += (std::min(last_amount, (int)current_amount) - 1) * 6;
-				index_buffer += (std::abs(last_amount - (int)current_amount) - 1) * 3;
+				index_buffer += (std::min(last_amount, (int)current_amount) - 1) * 12;
+				index_buffer += (std::abs(last_amount - (int)current_amount) - 1) * 6;
 				point_buffer ++;
 			}
 			else
 			{
-				index_buffer += (current_amount - 1) * 6;
+				index_buffer += (current_amount - 1) * 12;
 			}
     }
     if(current_amount > 1)
@@ -629,6 +638,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 	this->geometry_normals_.resize(std::max(static_cast<std::size_t>(p_o + point_buffer * 3), this->geometry_normals_.size()),-1.0);
 	this->geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3*2) + point_buffer * 2), this->geometry_texture_coordinates_.size()),-1.0);
 	this->geometry_node_ids_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_node_ids_.size()),-1);
+  this->geometry_organ_id_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_organ_id_.size()),-1);
 	// get the number of points
   // std::cout << "Iterating through the line intersections and generating the geometry_" << std::endl;
   last_amount = -1;
@@ -735,7 +745,8 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       geometry_texture_coordinates_[(p_o/3*2) + 1] = helper.texcoord(p);
 			// set the node id
       //std::cout << "i" << " ";
-			geometry_node_ids_[p_o/3] = 1;
+			geometry_node_ids_[p_o/3] = leaf->getNodeId(i);
+      geometry_organ_id_[p_o/3] = leaf->getId();
 			// increase buffer
 			p_o += 3;
     }
@@ -759,6 +770,14 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount + 1;
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
+					// first triangle backface
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j;
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
+					// second triangle backface
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount + 1;
+					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
         }
       }
       else
@@ -772,6 +791,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
         geometry_texture_coordinates_[(p_o/3*2) + 0] = 0.0;
         // set the node id
         geometry_node_ids_[p_o/3] = 1.0;
+        geometry_organ_id_[p_o/3] = leaf->getId();
         if(current_amount > last_amount)
         {
 					// since we have more points in one of the sections

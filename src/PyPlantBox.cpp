@@ -952,6 +952,8 @@ PYBIND11_MODULE(plantbox, m) {
         .def("GetVerbose", &PlantVisualiser::GetVerbose)
         .def("SetConfinedTo", &PlantVisualiser::SetConfinedTo, py::arg("lowerBound"), py::arg("upperBound"))
         .def("ClearConfinement", &PlantVisualiser::ClearConfinement)
+        .def("IdentifyOrgans", &PlantVisualiser::IdentifyOrgans)
+        .def("MapPropertyToColors", &PlantVisualiser::MapPropertyToColors, py::arg("property"), py::arg("minValue"), py::arg("maxValue"))
     ;
 
     py::enum_<Plant::TropismTypes>(m, "TropismType")

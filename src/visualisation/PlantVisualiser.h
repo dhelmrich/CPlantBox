@@ -45,6 +45,8 @@ public :
 
   void setPlant(const std::shared_ptr<MappedPlant>& plant);
 
+  std::vector<int> IdentifyOrgans() const;
+
   /* Geometry Functions for Visual Representation */
 
   /**
@@ -90,7 +92,7 @@ public :
    * @param minMax the min and max values of the property
   */
   void MapPropertyToColors(std::vector<double> property, 
-                           std::pair<double, double> minMax = {0.0, 1.0});
+                           double minv = 0.0, double maxv = 1.0);
 
   void SetVerbose(bool verbose) { this->verbose_ = verbose; }
   bool GetVerbose() { return this->verbose_; }
@@ -154,6 +156,7 @@ protected:
   std::vector<unsigned int> geometry_indices_; // indices for triangles
   std::vector<double> geometry_texture_coordinates_; // u,v coordinates
   std::vector<int> geometry_node_ids_; // the node ids for each vertex
+  std::vector<int> geometry_organ_id_; // the organ ids for each vertex
   unsigned int geometry_resolution_{8}; // the resolution of the cylindric geometry
   unsigned int leaf_resolution_{20}; // the resolution of the leaf geometry
 };
