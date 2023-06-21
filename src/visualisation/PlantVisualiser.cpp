@@ -463,7 +463,7 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
       {
         // if so, move the node back inside the confinement
         bool moved = false;
-        bindToBox(node, lower, upper);
+        node = bindToBox(node, lower, upper);
       }
     }
 

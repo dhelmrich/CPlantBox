@@ -85,7 +85,7 @@ for p in plant.getOrganRandomParameter(pb.leaf):
 plant.initialize()
 vis.SetGeometryResolution(8)
 vis.SetLeafResolution(leaf_res)
-vis.SetConfinedTo(pb.Vector3d(-1, -10.0, -23), pb.Vector3d(1, 10.0, 1.0))
+vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
 
 if mode == 0 :
   for i in tqdm(range(time * time_resolution), desc="Sim+Vis", unit="day", unit_scale=True) :
@@ -105,6 +105,10 @@ elif mode == 1 :
   plant.simulate(time, False)
   vis.ResetGeometry()
   vis.ComputeGeometry()
+  node_ids = vis.GetNodeIds()
+  idmax = np.max(node_ids)
+  idmin = np.min(node_ids)
+  vis.MapPropertyToColors(node_ids, idmin, idmax)
   #vis.ComputeGeometryForOrganType(pb.leaf, False)
   #vis.ComputeGeometryForOrganType(pb.stem, False)
   #vis.ComputeGeometry()
