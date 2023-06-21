@@ -67,9 +67,7 @@ public:
         return Vector3d((getDist(p.plus(epsX)) - getDist(p.minus(epsX)))/(2.*eps), (getDist(p.plus(epsY)) - getDist(p.minus(epsY)))/(2.*eps),
             (getDist(p.plus(epsZ)) - getDist(p.minus(epsZ)))/(2.*eps));
     }
-
 };
-
 
 
 /**

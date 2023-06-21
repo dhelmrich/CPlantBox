@@ -67,6 +67,12 @@ class CatmullRomSplineManager
   public:
   CatmullRomSplineManager() = default;
   CatmullRomSplineManager(std::vector<Vector3d> y) : y(y) {
+    // ensure that we have at least 4 points, interpolate if not
+    // we linearly interpolate the first and last point
+    while(this->y.size() < 4)
+    {
+      this->y.insert(this->y.begin() + 1, this->y[0] + (this->y[1] - this->y[0]) * 0.5);
+    }
     computeT();
   }
 

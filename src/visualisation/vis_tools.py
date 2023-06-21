@@ -5,7 +5,20 @@ import vtk
 import vtk.util.numpy_support as vtknp
 import numpy as np
 
-def PolydataFromPlantGeometry(vis : pb.PlantVisualiser ) :
+# a function that takes a list of points and confines them to a box
+def ConfinePointsToBox(points : np.ndarray, box : np.ndarray) :
+  points = np.array(points)
+  box = np.array(box)
+  if points.shape[1] != box.shape[1] :
+    print("Error: points and box must have the same number of dimensions")
+    return None
+  # end if
+  for i in range(points.shape[1]) :
+    points[:,i] = np.clip(points[:,i], box[0,i], box[1,i])
+  # end for
+  return points
+
+def PolydataFromPlantGeometry(vis : pb.PlantVisualiser , box : np.ndarray = None ) :
   """Create a vtkPolyData object from a plantbox plant geometry"""
   if not vis.HasGeometry() :
     return None
@@ -17,22 +30,27 @@ def PolydataFromPlantGeometry(vis : pb.PlantVisualiser ) :
   geom = np.array(vis.GetGeometry())
   geom = np.reshape(geom, (geom.shape[0]//3, 3))
   num_points = geom.shape[0]
+  if box is not None :
+    geom = ConfinePointsToBox(geom, box)
   geom = vtknp.numpy_to_vtk(geom, deep=True)
   geom.SetName("points")
   points.SetData(geom)
   nodeids = np.array(vis.GetGeometryNodeIds())
-  print(nodeids.shape)
+  if vis.GetVerbose() :
+    print(nodeids.shape)
   nodeids = vtknp.numpy_to_vtk(nodeids, deep=True)
   nodeids.SetName("nodeids")
   pd.GetPointData().AddArray(nodeids)
   texcoords = np.array(vis.GetGeometryTextureCoordinates())
-  print(texcoords.shape)
+  if vis.GetVerbose() :
+    print(texcoords.shape)
   texcoords = np.reshape(texcoords, (texcoords.shape[0]//2, 2))
   texcoords = vtknp.numpy_to_vtk(texcoords, deep=True)
   texcoords.SetName("tcoords")
   pd.GetPointData().AddArray(texcoords)
   normals = np.array(vis.GetGeometryNormals())
-  print(normals.shape)
+  if vis.GetVerbose() :
+    print(normals.shape)
   normals = np.reshape(normals, (normals.shape[0]//3, 3))
   normals = vtknp.numpy_to_vtk(normals, deep=True)
   normals.SetName("normals")

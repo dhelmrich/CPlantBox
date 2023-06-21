@@ -197,7 +197,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
 			}
 		}
   }
-  //std::cout << "Going to allocate " << point_space << " points and " << cell_space << " cells" << std::endl;
+  if(verbose_) std::cout << "Going to allocate " << point_space << " points and " << cell_space << " cells" << std::endl;
   if(clearFirst)
   {
     geometry_.clear();
@@ -221,7 +221,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
   for(auto organ : organ_list)
   {
     checked_organs++;
-		//std::cout << "Going through organ " << organ->getId() << std::endl;
+		if(verbose_) std::cout << "Going through organ " << organ->getId() << std::endl;
 
     if((organType >= 1 && organ->organType() != organType) || organ->getNumberOfNodes() <= 1)
     {
@@ -231,7 +231,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
     {
 			auto leaf = std::dynamic_pointer_cast<Leaf>(organ);
 			// render petiole
-      //std::cout << "Generating geometry_ for leaf " << organ->getId() << " with " << organ->getNumberOfNodes() << " nodes." << std::endl;
+      if(verbose_) std::cout << "Generating geometry_ for leaf " << organ->getId() << " with " << organ->getNumberOfNodes() << " nodes." << std::endl;
       //std::cout << "Stem part for petiole and rest" << std::endl;
 			if(include_midline_in_leaf_)
 			{
@@ -245,7 +245,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
 			
 			if(leaf->getLeafRandomParameter()->parametrisationType == 1)
 			{
-				std::cout << "Generating radial leaf geometry_" << std::endl;
+				if(verbose_) std::cout << "Generating radial leaf geometry_" << std::endl;
 				GenerateRadialLeafGeometry(leaf, point_space, cell_space);
 				point_space = geometry_.size();
 				cell_space = geometry_indices_.size();
@@ -271,7 +271,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
     }
     else
     {
-			//std::cout << "Organ is a stem" << std::endl;
+			if(verbose_) std::cout << "Organ is a stem" << std::endl;
       //std::cout << "Generating geometry_ for stem " << organ->getId() << " with " << organ->getNumberOfNodes() << " nodes." << std::endl;
       auto prev_size = geometry_indices_.size();
       GenerateStemGeometry(organ, point_space, cell_space);
@@ -281,7 +281,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
       point_space = geometry_.size();
       cell_space = geometry_indices_.size();
     }
-    //std::cout << "Done generating geometry_ for organ " << organ->getId() << std::endl;
+    if(verbose_) std::cout << "Done generating geometry_ for organ " << organ->getId() << std::endl;
 
   }
   assert(geometry_.size() % 3 == 0);
@@ -332,7 +332,7 @@ void PlantVisualiser::MapPropertyToColors(std::vector<double> property, std::pai
 
 void PlantVisualiser::BuildAttachmentMap()
 {
-  //std::cout << "Building attachment map" << std::endl;
+  if(verbose_) std::cout << "Building attachment map" << std::endl;
   leaf_attachment_map_.clear();
   for(auto organ : plant_->getOrgans(Organism::OrganTypes::ot_leaf, true))
   {
@@ -435,6 +435,7 @@ void PlantVisualiser::GenerateLeafGeometry(std::shared_ptr<Leaf> leaf, unsigned 
 
 void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned int p_o, unsigned int c_o)
 {
+  int needed_to_move = 0;
   //std::cout << "Generating Stem for " << stem->getId() << " and reserving buffers" << std::endl;
 	geometry_.resize(std::max(static_cast<std::size_t>(p_o + (stem->getNumberOfNodes() * geometry_resolution_ * 3)), geometry_.size()),-1.0);
 	geometry_normals_.resize(std::max(static_cast<std::size_t>(p_o + (stem->getNumberOfNodes() * geometry_resolution_ * 3)), geometry_normals_.size()),-1.0);
@@ -449,7 +450,22 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
   for(auto i = 0; i < stem->getNumberOfNodes(); ++i)
   {
     double diameter = stem->getParameter("radius");
-    const auto& node = stem->getNode(i);
+    Vector3d node = stem->getNode(i);
+
+    if(stem->organType() == Organism::OrganTypes::ot_root && confine_)
+    {
+      // check if the node is outside the confinement
+      Vector3d lower = confinement_.first;
+      Vector3d upper = confinement_.second;
+      if(node.x  > upper.x || node.x  < lower.x ||
+         node.y  > upper.y || node.y  < lower.y ||
+         node.z  > upper.z || node.z  < lower.z)
+      {
+        // if so, move the node back inside the confinement
+        bool moved = false;
+        bindToBox(node, lower, upper);
+      }
+    }
 
 		// if the current i is in the last 10% of the nodes
 		if(static_cast<float>(i)/static_cast<float>(stem->getNumberOfNodes()) > 0.9f)
@@ -475,6 +491,9 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
 		lastRotation = Quaternion::FromForwardAndUp(dist, lastRotation.Up());
     auto deltaphi = 2 * M_PI / geometry_resolution_;
 		unsigned int point_index_offset = p_o / 3;
+
+
+
     for (auto j = 0; j < geometry_resolution_; ++j)
     {
       auto phi = j * deltaphi;
@@ -508,6 +527,7 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
       geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 1 + point_index_offset*2] = phi / (2.0 * M_PI);
     }
   }
+  if(verbose_) std::cout << "Needed to move " << needed_to_move << " nodes" << std::endl;
 }
 
 void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, unsigned int p_o, unsigned int c_o)
@@ -852,7 +872,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 		//last_orientation = local_q;
 		last_position = midpoint;
 	}
-	std::cout << "In the end I ended up adding " << c_o - start_c_o << " where I thought I'd add " << index_buffer << std::endl;
+	if(verbose_) std::cout << "In the end I ended up adding " << c_o - start_c_o << " where I thought I'd add " << index_buffer << std::endl;
 }
 
 std::vector<double> PlantVisualiser::GetGeometry() const

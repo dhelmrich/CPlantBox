@@ -2,7 +2,9 @@
 #include "external/pybind11/include/pybind11/pybind11.h"
 #include "external/pybind11/include/pybind11/stl.h"
 #include <pybind11/functional.h>
+#include <pybind11/options.h>
 namespace py = pybind11;
+
 
 /**
  * A Python binding based on pybind11
@@ -227,34 +229,44 @@ PYBIND11_MODULE(plantbox, m) {
             .def("dist",&SignedDistanceFunction::dist)
             .def("writePVPScript", (std::string (SignedDistanceFunction::*)() const) &SignedDistanceFunction::writePVPScript) // overloads
             .def("getGradient",  &SignedDistanceFunction::getGradient, py::arg("p"), py::arg("eps") = 5.e-4) // defaults
-            .def("__str__",&SignedDistanceFunction::toString);
+            .def("__str__",&SignedDistanceFunction::toString)
+            ;
     py::class_<SDF_PlantBox, SignedDistanceFunction, std::shared_ptr<SDF_PlantBox>>(m, "SDF_PlantBox")
-            .def(py::init<double,double,double>());
+            .def(py::init<double,double,double>())
+            ;
     py::class_<SDF_Cuboid, SignedDistanceFunction, std::shared_ptr<SDF_Cuboid>>(m, "SDF_Cuboid")
-            .def(py::init<Vector3d,Vector3d>());
+            .def(py::init<Vector3d,Vector3d>())
+            ;
     py::class_<SDF_PlantContainer, SignedDistanceFunction, std::shared_ptr<SDF_PlantContainer>>(m,"SDF_PlantContainer")
             .def(py::init<>())
-            .def(py::init<double,double,double,double>());
-    py::class_<SDF_RotateTranslate, std::shared_ptr<SDF_RotateTranslate>>(m, "SDF_RotateTranslate")
+            .def(py::init<double,double,double,double>())
+            ;
+    py::class_<SDF_RotateTranslate,  SignedDistanceFunction, std::shared_ptr<SDF_RotateTranslate>>(m, "SDF_RotateTranslate")
             .def("getDist", &SDF_RotateTranslate::getDist)
             .def(py::init<std::shared_ptr<SignedDistanceFunction>,double,int,Vector3d&>())
-            .def(py::init<std::shared_ptr<SignedDistanceFunction>,Vector3d&>());
+            .def(py::init<std::shared_ptr<SignedDistanceFunction>,Vector3d&>())
+        ;
     py::enum_<SDF_RotateTranslate::SDF_Axes>(m, "SDF_Axis")
             .value("xaxis", SDF_RotateTranslate::SDF_Axes::xaxis)
             .value("yaxis", SDF_RotateTranslate::SDF_Axes::yaxis)
             .value("zaxis", SDF_RotateTranslate::SDF_Axes::zaxis)
-            .export_values();
+            .export_values()
+            ;
     py::class_<SDF_Intersection, SignedDistanceFunction, std::shared_ptr<SDF_Intersection>>(m,"SDF_Intersection")
             .def(py::init<std::vector<std::shared_ptr<SignedDistanceFunction>>>())
-            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>());
+            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>())
+            ;
     py::class_<SDF_Union, SDF_Intersection, std::shared_ptr<SDF_Union>>(m, "SDF_Union")
             .def(py::init<std::vector<std::shared_ptr<SignedDistanceFunction>>>())
-            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>());
+            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>())
+            ;
     py::class_<SDF_Difference, SDF_Intersection, std::shared_ptr<SDF_Difference>>(m, "SDF_Difference")
             .def(py::init<std::vector<std::shared_ptr<SignedDistanceFunction>>>())
-            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>());
+            .def(py::init<std::shared_ptr<SignedDistanceFunction>,std::shared_ptr<SignedDistanceFunction>>())
+            ;
     py::class_<SDF_Complement, SignedDistanceFunction, std::shared_ptr<SDF_Complement>>(m, "SDF_Complement")
-            .def(py::init<std::shared_ptr<SignedDistanceFunction>>());
+            .def(py::init<std::shared_ptr<SignedDistanceFunction>>())
+            ;
     py::class_<SDF_HalfPlane, SignedDistanceFunction, std::shared_ptr<SDF_HalfPlane>>(m, "SDF_HalfPlane")
             .def(py::init<Vector3d&,Vector3d&>())
             .def(py::init<Vector3d&,Vector3d&,Vector3d&>())
@@ -935,6 +947,11 @@ PYBIND11_MODULE(plantbox, m) {
         .def("SetComputeMidlineInLeaf", &PlantVisualiser::SetComputeMidlineInLeaf, py::arg("inCompute"))
         .def("HasGeometry", &PlantVisualiser::HasGeometry)
         .def("ResetGeometry", &PlantVisualiser::ResetGeometry)
+        .def("SetVerbose", &PlantVisualiser::SetVerbose, py::arg("verbose"))
+        .def("SetAddVerticalLeafOffset", &PlantVisualiser::SetAddVerticalLeafOffset, py::arg("addOffset"))
+        .def("GetVerbose", &PlantVisualiser::GetVerbose)
+        .def("SetConfinedTo", &PlantVisualiser::SetConfinedTo, py::arg("lowerBound"), py::arg("upperBound"))
+        .def("ClearConfinement", &PlantVisualiser::ClearConfinement)
     ;
 
     py::enum_<Plant::TropismTypes>(m, "TropismType")

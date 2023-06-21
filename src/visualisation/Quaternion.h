@@ -36,6 +36,10 @@ static inline Vector3d vectorNormalized(const Vector3d& a) {
   return a / a.length();
 }
 
+static inline Vector3d bindToBox(const Vector3d& a, const Vector3d& l, const Vector3d& u) {
+  return Vector3d(std::max(l.x, std::min(u.x, a.x)), std::max(l.y, std::min(u.y, a.y)), std::max(l.z, std::min(u.z, a.z)));
+}
+
 /**
  * Quaternion class with common functions for CG
  * this is for general Quaternions, but we use it for H0 and H1

@@ -93,12 +93,18 @@ public :
                            std::pair<double, double> minMax = {0.0, 1.0});
 
   void SetVerbose(bool verbose) { this->verbose_ = verbose; }
+  bool GetVerbose() { return this->verbose_; }
   void SetAddVerticalLeafOffset(bool add) { this->add_vertical_leaf_offset_ = add; }
+
+  void SetConfinedTo(Vector3d lowerBound, Vector3d upperBound) { this->confine_ = true; this->confinement_ = std::make_pair(lowerBound,upperBound); }
+  void ClearConfinement() { this->confine_ = false; }
 
 protected:
   std::shared_ptr<MappedPlant> plant_{nullptr};
 
   bool include_midline_in_leaf_{true};
+  bool confine_{false};
+  std::pair<Vector3d, Vector3d> confinement_{{0,0,0}, {1,1,1}};
   bool verbose_{false};
   bool add_vertical_leaf_offset_{false};
 
