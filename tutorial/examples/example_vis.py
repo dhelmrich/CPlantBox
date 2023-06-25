@@ -47,6 +47,7 @@ interior_np = np.array([[], []])
 interior = pb.SDF_RotateTranslate(interior, pb.Vector3d(0, 0, 1))
 exterior = pb.SDF_PlantBox(10.0, 40.0, 40.0)
 rhizotron = pb.SDF_Difference(exterior, interior)
+rhizotron = pb.SDF_RotateTranslate(rhizotron, 30, 0, pb.Vector3d(0, 0, 0))
 
 
 time = 28
@@ -57,43 +58,46 @@ plant.setGeometry(rhizotron)
 plant.readParameters(filename)
 vis = pb.PlantVisualiser(plant)
 
-time = 20
+time = 28
 time_resolution = 2
-mode = 1 # 0 = time, 1 = end
+mode = 2 # 0 = time, 1 = end, 2 = variation
 vis.SetVerbose(mode == 1)
 
-for p in plant.getOrganRandomParameter(pb.stem):
-  p.r = 0.758517633
-  p.lb = 4
-  # p.delayLat = 4
-  p.lmax = (time-7)*p.r
-  p.dx = 0.1
-for p in plant.getOrganRandomParameter(pb.leaf):
-  p.la,  p.lmax = 38.41053981, 38.41053981
-  #p.theta = 0.2 # 0.2
-  p.theta = 0.01
-  p.tropismT = 1 # 6: Anti-gravitropism to gravitropism
-  p.areaMax = 54.45388021  # cm2, area reached when length = lmax
-  phi = np.array([-90,-80, -45, 0., 45, 90]) / 180. * np.pi    
-  l = np.array([38.41053981,1 ,1, 0.3, 1, 38.41053981]) #distance from leaf center
-  p.leafGeometryPhi = phi
-  p.leafGeometryX = l
-  #p.tropismN = 5
-  p.tropismS = 0.08
-  p.tropismAge = 5 #< age at which tropism switch occures, only used if p.tropismT = 6
-  p.createLeafRadialGeometry(phi,l,leaf_res)
+def setupparams(plant) :
+  for p in plant.getOrganRandomParameter(pb.stem):
+    p.r = 0.758517633
+    p.lb = 4
+    # p.delayLat = 4
+    p.lmax = (time-7)*p.r
+    p.dx = 0.1
+  for p in plant.getOrganRandomParameter(pb.leaf):
+    p.la,  p.lmax = 38.41053981, 38.41053981
+    #p.theta = 0.2 # 0.2
+    p.theta = 0.01
+    p.tropismT = 1 # 6: Anti-gravitropism to gravitropism
+    p.areaMax = 54.45388021  # cm2, area reached when length = lmax
+    phi = np.array([-90,-80, -45, 0., 45, 90]) / 180. * np.pi    
+    l = np.array([38.41053981,1 ,1, 0.3, 1, 38.41053981]) #distance from leaf center
+    p.leafGeometryPhi = phi
+    p.leafGeometryX = l
+    #p.tropismN = 5
+    p.tropismS = 0.08
+    p.tropismAge = 5 #< age at which tropism switch occures, only used if p.tropismT = 6
+    p.createLeafRadialGeometry(phi,l,leaf_res)
 
 # Initialize
 plant.initialize()
 vis.SetGeometryResolution(8)
 vis.SetLeafResolution(leaf_res)
-vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
+#vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
 
 def organvis(vis,data) :
   organs = vis.IdentifyOrgans()
   idmax = np.max(organs)
   idmin = np.min(organs)
-  data.GetPointData().AddArray(organs, "organ")
+  organs = vn.numpy_to_vtk(organs, deep=True, array_type=vtk.VTK_INT)
+  organs.SetName("organ")
+  data.GetPointData().AddArray(organs)
 
 if mode == 0 :
   for i in tqdm(range(time * time_resolution), desc="Sim+Vis", unit="day", unit_scale=True) :
@@ -130,5 +134,34 @@ elif mode == 1 :
   data.GetPointData().AddArray(organs)
   cpbvis.WritePolydataToFile(data, output + ".vtp")
   print("Wrote " + output + ".vtp")
+elif mode == 2 :
+  for i in range(100) :
+    #for i in tqdm(range(100), desc="Sim+Var", unit="Sample", unit_scale=True) :
+    plant = pb.MappedPlant()
+    plant.setGeometry(rhizotron)
+    plant.readParameters(filename)
+    setupparams(plant)
+    vis = pb.PlantVisualiser(plant)
+    plant.initialize()
+    vis.SetGeometryResolution(8)
+    vis.SetLeafResolution(leaf_res)
+    vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
+    plant.simulate(time, False)
+    vis.ResetGeometry()
+    vis.SetVerbose(False)
+    vis.ComputeGeometryForOrganType(pb.leaf, True)
+    data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
+    cpbvis.WritePolydataToFile(data, output + "_leaf_" + str(i) + ".vtp")
+    vis.ComputeGeometryForOrganType(pb.stem, True)
+    data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
+    cpbvis.WritePolydataToFile(data, output + "_stem_" + str(i) + ".vtp")
+    vis.ComputeGeometryForOrganType(pb.root, True)
+    data = cpbvis.PolydataFromPlantGeometry(vis)
+    organvis(vis,data)
+    cpbvis.WritePolydataToFile(data, output + "_root_" + str(i) + ".vtp")
+    print(output + "_" + str(i) + ".vtp")
 #end if
+
 

@@ -576,7 +576,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
   //Quaternion lastRotation = Quaternion::FromMatrix3d({direction, right, up});
 	auto min_radius = stem->getParameter("radius");
 
-  // std::cout << "Invoking create leaf radial geometry_ for leaf " << leaf->getId() << std::endl;
+  if(verbose_) std::cout << "Invoking create leaf radial geometry_ for leaf " << leaf->getId() << std::endl;
 
 	// create leaf radial geometry_
 	// greate points for the leaf outer
@@ -593,7 +593,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
   int last_amount = -1;
   int last_non_petiole = -1;
   double r_max = std::numeric_limits<float>::lowest();
-  //std::cout << "Counting how much space we need for the leaf geometry_" << std::endl;
+  if (verbose_) std::cout << "Counting how much space we need for the leaf geometry_" << std::endl;
   for (auto i = 0; i < outer_geometry_points.size(); ++i)
   {
 		MirrorIterator helper(&(outer_geometry_points[i]));
@@ -612,13 +612,13 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 				//std::cout << "Adding Ts : " << last_amount << "/" << current_amount << std::endl;
 			if(last_amount != current_amount)
 			{
-				index_buffer += (std::min(last_amount, (int)current_amount) - 1) * 12;
-				index_buffer += (std::abs(last_amount - (int)current_amount) - 1) * 6;
+				index_buffer += (std::min(last_amount, (int)current_amount) - 1) * 6;
+				index_buffer += (std::abs(last_amount - (int)current_amount) - 1) * 3;
 				point_buffer ++;
 			}
 			else
 			{
-				index_buffer += (current_amount - 1) * 12;
+				index_buffer += (current_amount - 1) * 6;
 			}
     }
     if(current_amount > 1)
@@ -631,7 +631,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       last_amount = current_amount;
     }
   }
-  //std::cout << "Resizing geometry_ buffers by " << point_buffer << " points and " << index_buffer << " triangle values." << std::endl;
+  if(verbose_) std::cout << "Resizing geometry_ buffers by " << point_buffer << " points and " << index_buffer << " triangle values." << std::endl;
   // increase geometry_ buffers
   this->geometry_.resize(std::max(static_cast<std::size_t>(p_o + point_buffer * 3), this->geometry_.size()),-1.0);
 	this->geometry_indices_.resize(std::max(static_cast<std::size_t>(c_o + index_buffer), this->geometry_indices_.size()),static_cast<unsigned int>(-1));
@@ -639,6 +639,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 	this->geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3*2) + point_buffer * 2), this->geometry_texture_coordinates_.size()),-1.0);
 	this->geometry_node_ids_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_node_ids_.size()),-1);
   this->geometry_organ_id_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_organ_id_.size()),-1);
+  if(verbose_) std::cout << "Index buffer is now " << this->geometry_indices_.size() << " long." << std::endl;
 	// get the number of points
   // std::cout << "Iterating through the line intersections and generating the geometry_" << std::endl;
   last_amount = -1;
@@ -699,10 +700,10 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 		const auto first_distance = (first_node - first_estimated).length();
 		//std::cout << "First distance is " << first_distance << std::endl;
     
+    //if (verbose_) std::cout << "Making the points: " << std::endl;
     for(int p = 0; p < helper.size(); ++p)
     {
       //std::cout << p_o << "/" << geometry_.size() << " ";
-
       auto r = helper[p];
       // get the point
 			// get the wave effect which is a sine function along the length of the leaf
@@ -745,13 +746,15 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       geometry_texture_coordinates_[(p_o/3*2) + 1] = helper.texcoord(p);
 			// set the node id
       //std::cout << "i" << " ";
-			geometry_node_ids_[p_o/3] = leaf->getNodeId(i);
+			geometry_node_ids_[p_o/3] = i;
       geometry_organ_id_[p_o/3] = leaf->getId();
 			// increase buffer
 			p_o += 3;
     }
+    //if(verbose_) std::cout << std::endl;
     //std::cout << std::endl;
     //std::cout << std::endl << "Generating the triangles for the current line intersection " << i << "(" << current.size() << ")" << std::endl;
+    //if (verbose_) std::cout << "Making the triangles" << std::endl;
     if(i > last_non_petiole && last_non_petiole >= 0)
     {
       // use the case distinction between number of intersections
@@ -770,14 +773,6 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount + 1;
 					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
-					// first triangle backface
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j;
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
-					// second triangle backface
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j + 1;
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount + 1;
-					geometry_indices_[c_o++] = (p_o/3) - current_amount + j - last_amount;
         }
       }
       else
@@ -788,9 +783,9 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
         geometry_normals_[p_o + 2] = up.z;
         // set the texture coordinates
         geometry_texture_coordinates_[(p_o/3*2)] = t;
-        geometry_texture_coordinates_[(p_o/3*2) + 0] = 0.0;
+        geometry_texture_coordinates_[(p_o/3*2) + 1] = l;
         // set the node id
-        geometry_node_ids_[p_o/3] = 1.0;
+        geometry_node_ids_[p_o/3] = leaf->getNodeId(i);
         geometry_organ_id_[p_o/3] = leaf->getId();
         if(current_amount > last_amount)
         {

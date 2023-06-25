@@ -57,3 +57,5 @@ tutorial/jupyter/.ipynb_checkpoints/
 *.png
 *.obj
 *.mtl
+*.ply
+*.fbx

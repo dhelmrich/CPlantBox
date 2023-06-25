@@ -6,11 +6,11 @@ include_directories(structural)
 include_directories(functional)
 include_directories(visualisation)
 
-include_directories(external/tinyxml2)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 link_libraries (Eigen3::Eigen)
 
 include_directories(external/)
+include_directories(external/tinyxml2/)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_library(CPlantBox SHARED
@@ -32,7 +32,27 @@ add_library(CPlantBox SHARED
             structural/MappedOrganism.cpp
      		structural/sdf.cpp
             structural/SegmentAnalyser.cpp            
-            structural/tropism.cpp            
+            structural/tropism.cpp
+
+            structural/organparameter.h
+            structural/rootparameter.h
+			structural/seedparameter.h
+			structural/leafparameter.h
+			structural/stemparameter.h
+            structural/Organ.h
+            structural/Root.h
+            structural/RootDelay.h            
+            structural/Seed.h
+			structural/Stem.h
+			structural/Leaf.h
+			structural/Plant.h
+            structural/Organism.h
+            structural/Plant.h            
+            structural/RootSystem.h
+            structural/MappedOrganism.h
+     		structural/sdf.h
+            structural/SegmentAnalyser.h            
+            structural/tropism.h    
 			
             functional/XylemFlux.cpp
 			functional/Photosynthesis.cpp
@@ -44,6 +64,7 @@ add_library(CPlantBox SHARED
 			visualisation/PlantVisualiser.cpp
             
 			external/tinyxml2/tinyxml2.cpp		
+      external/tinyxml2/tinyxml2.h
 			external/aabbcc/AABB.cc
             external/gauss_legendre/gauss_legendre.cpp       
 )
@@ -52,9 +73,14 @@ target_link_libraries(CPlantBox
 						)
 
 set_target_properties(CPlantBox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
+
 target_include_directories(
                         CPlantBox
-                        PUBLIC
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
+  PUBLIC ${CMAKE_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/external
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
 )
 set_target_properties(CPlantBox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 #
@@ -78,6 +104,14 @@ if(UNIX)
 	# add search path for the library to the python module
 	target_link_libraries(plantbox PUBLIC 
 				CPlantBox)
+target_include_directories(
+                        plantbox
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
+  PUBLIC ${CMAKE_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/external
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
+)
 			
 	set_target_properties(plantbox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
 
