@@ -954,6 +954,11 @@ PYBIND11_MODULE(plantbox, m) {
         .def("ClearConfinement", &PlantVisualiser::ClearConfinement)
         .def("IdentifyOrgans", &PlantVisualiser::IdentifyOrgans)
         .def("MapPropertyToColors", &PlantVisualiser::MapPropertyToColors, py::arg("property"), py::arg("minValue"), py::arg("maxValue"))
+        .def("SetLeafWidthScaleFactor", &PlantVisualiser::SetLeafWidthScaleFactor, py::arg("scaleFactor"))
+        .def("LeafWidthScaleFactor", &PlantVisualiser::LeafWidthScaleFactor)
+        .def("SetVerticalLeafOffset", &PlantVisualiser::SetVerticalLeafOffset, py::arg("offset"))
+        .def("SetRandomVerticalLeafOffset", &PlantVisualiser::SetRandomVerticalLeafOffset, py::arg("random"))
+        .def("SetOffsetFrequency", &PlantVisualiser::SetOffsetFrequency, py::arg("frequency"))
     ;
 
     py::enum_<Plant::TropismTypes>(m, "TropismType")
