@@ -648,8 +648,16 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 	Vector3d last_position;
 	int last_index{-1};
   // create two random factors between 0 and 1
-  float random_factor_1 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-  float random_factor_2 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+  double random_factor = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+  if(!random_vertical_leaf_offset_)
+  {
+    // set random_factor so that a sine function will hit 10 peaks during length
+    random_factor = offset_frequency_ * 2.0 * M_PI / length;
+  }
+  else
+  {
+    random_factor *= offset_frequency_ * 2.0 * M_PI / length;
+  }
 
   // computing the first quaternion from: stem is forward, right is angular direction and up is the cross product
 
@@ -685,8 +693,9 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 
     // local axis
     direction = select_spline.derivative(t);
+    up = direction.cross(right).normalized();
     right = up.cross(direction).normalized();
-		right.z = 0.05 * right.z;
+		right.z = 0.02 * right.z;
 		right.normalize();
     up = direction.cross(right).normalized();
 
@@ -708,26 +717,34 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       // get the point
 			// get the wave effect which is a sine function along the length of the leaf
 
-			float z_offset =  0.33 * (helper.isMirrored(p) ? -1.0 : 1.0);
+			float z_offset =  (helper.isMirrored(p) ? -1.0 : 1.0) * vertical_leaf_offset_;
 			// make two different sine waves for each side
-      if(!add_vertical_leaf_offset_)
+      if(!add_vertical_leaf_offset_ || i > resolution * 0.9)
       {
         z_offset = 0.0;
       }
-			else if(helper.isMirrored(p))
-			{
-			  z_offset *= std::sin((2.0*random_factor_1 + 2.0) * l / M_PI);
-      }
       else
       {
-        z_offset *= std::sin((2.0 * random_factor_2 + 2.0) * l / M_PI + M_PI);
+        z_offset *= std::sin(random_factor * t);
       }
 			Vector3d base_direction = leaf_width_scale_factor_ * r * right;
 			// scale with width
 			
 			//std::cout << base_direction.toString() << std::endl;
 			//Vector3d updated_direction = local_q.Rotate(base_direction);
-			base_direction = (base_direction.length() > min_radius) ? base_direction : min_radius * vectorNormalized(base_direction);
+      if(base_direction.length() < min_radius)
+      {
+        base_direction = min_radius * vectorNormalized(base_direction);
+      }
+
+
+      // if i is in the last 10% of the leaf, constrict the base_direction
+      if(i > resolution * 0.9 )
+      {
+        auto factor_ = (resolution-i) / (resolution * 0.1);
+        base_direction = base_direction * factor_;
+      }
+
 			const Vector3d point = midpoint + base_direction +  up * z_offset;
       //std::cout << "V: " << point.toString() << "; ";
       // set the point

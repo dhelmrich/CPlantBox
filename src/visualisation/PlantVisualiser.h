@@ -100,6 +100,9 @@ public :
 
   void SetConfinedTo(Vector3d lowerBound, Vector3d upperBound) { this->confine_ = true; this->confinement_ = std::make_pair(lowerBound,upperBound); }
   void ClearConfinement() { this->confine_ = false; }
+  void SetRandomVerticalLeafOffset(bool random) { this->random_vertical_leaf_offset_ = random; }
+  void SetVerticalLeafOffset(double offset) { this->vertical_leaf_offset_ = offset; }
+  void SetOffsetFrequency(double frequency) { this->offset_frequency_ = frequency; }
 
 protected:
   std::shared_ptr<MappedPlant> plant_{nullptr};
@@ -109,6 +112,9 @@ protected:
   std::pair<Vector3d, Vector3d> confinement_{{0,0,0}, {1,1,1}};
   bool verbose_{false};
   bool add_vertical_leaf_offset_{false};
+  double offset_frequency_{10.0};
+  double vertical_leaf_offset_{0.0};
+  bool random_vertical_leaf_offset_{false};
 
   double leaf_width_scale_factor_{1.0};
 
