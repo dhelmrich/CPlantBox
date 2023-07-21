@@ -543,7 +543,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
 {
 	// Fetch the phi array
 	double scaling_factor = leaf->getParameter("areaMax") * leaf->getLength(false) / leaf->getParameter("k");
-
+  if (verbose_) std::cout << "Generating radial leaf geometry in visualization for organ " << leaf->getId() << " with scaling factor " << scaling_factor << std::endl;
 	// resolution
 	int resolution = leaf_resolution_;
 	// Compute the mid vein of the leaf
@@ -652,16 +652,14 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
   if(!random_vertical_leaf_offset_)
   {
     // set random_factor so that a sine function will hit 10 peaks during length
-    random_factor = offset_frequency_ * 2.0 * M_PI / length;
+    random_factor = offset_frequency_ * 2.0 * M_PI * length;
   }
   else
   {
-    random_factor *= offset_frequency_ * 2.0 * M_PI / length;
+    random_factor *= offset_frequency_ * 2.0 * M_PI * length;
   }
 
   // computing the first quaternion from: stem is forward, right is angular direction and up is the cross product
-
-
 	for(auto i = 0; i < outer_geometry_points.size(); ++i)
 	{
     const std::vector<double>& current = outer_geometry_points[i];
@@ -725,7 +723,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       }
       else
       {
-        z_offset *= std::sin(random_factor * t);
+        z_offset *= std::sin(random_factor * l);
       }
 			Vector3d base_direction = leaf_width_scale_factor_ * r * right;
 			// scale with width

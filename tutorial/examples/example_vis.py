@@ -5,6 +5,7 @@ import sys; sys.path.append("../../unix"); sys.path.append("../../src/"); sys.pa
 import numpy as np
 from tqdm import tqdm
 import subprocess
+import time
 
 # save pwd
 import os
@@ -32,7 +33,7 @@ import vtk
 from vtk.util import numpy_support as vn
 
 filename = "./vis_example_plant_maize.xml"
-output_folder = "./results/"
+output_folder = "./tresults/"
 
 # if output_folder does not exist, create it
 if not os.path.exists(output_folder):
@@ -56,16 +57,16 @@ rhizotron = pb.SDF_RotateTranslate(rhizotron, 30, 0, pb.Vector3d(0, 0, 0))
 
 
 leaf_res = 40
-num_variations = 20
+num_variations = 50
 # create a plant
 plant = pb.MappedPlant()
-plant.setGeometry(rhizotron)
+#plant.setGeometry(rhizotron)
 plant.readParameters(filename)
 vis = pb.PlantVisualiser(plant)
 
-time = 25
+stime = 20
 time_resolution = 2
-mode = 2 # 0 = time, 1 = end, 2 = variation
+mode = 0 # 0 = time, 1 = end, 2 = variation
 net_mode = 0 # 0 = no net, 1 = net
 vis.SetVerbose(mode == 1)
 
@@ -75,20 +76,27 @@ if net_mode == 1 :
 
 def setupparams(plant) :
   for p in plant.getOrganRandomParameter(pb.stem):
+    if p == None :
+      continue
     p.r = 0.758517633
     p.lb = 4
     #p.delayLat = 4
-    p.lmax = (time-7)*p.r
+    p.lmax = (stime-5)*p.r
     p.dx = 0.1
   for p in plant.getOrganRandomParameter(pb.leaf):
+    if p == None :
+      continue
     p.la,  p.lmax = 38.41053981, 38.41053981
-    p.la = 35
-    p.lmax = 35
+    p.la = 20
+    p.lmax = 20
     #p.theta = 0.2 # 0.2
     p.theta = 0.001
+    #p.thetas = 0.1
+    p.RotBeta = 0.8
+    p.dx = 0.1
     p.tropismT = 1 # 6: Anti-gravitropism to gravitropism
     #p.areaMax = 54.45388021  # cm2, area reached when length = lmax
-    p.areaMax = 48  # cm2, area reached when length = lmax
+    p.areaMax = 28  # cm2, area reached when length = lmax
     phi = np.array([-90,-80, -45, 0., 45, 90]) / 180. * np.pi    
     l = np.array([38.41053981,1 ,1, 0.3, 1, 38.41053981]) #distance from leaf center
     l /= np.linalg.norm(l)
@@ -101,7 +109,8 @@ def setupparams(plant) :
     p.createLeafRadialGeometry(phi,l,leaf_res)
 
 # Initialize
-plant.initialize()
+#plant.initialize()
+#plant.simulate(10,False)
 vis.SetGeometryResolution(8)
 vis.SetLeafResolution(leaf_res)
 vis.SetAddVerticalLeafOffset(True)
@@ -122,24 +131,42 @@ def SendOrWrite(data, i, organ:str) :
     cpbvis.WritePolydataToFile(data, output + "_" + organ + "_" + str(i) + ".vtp")
 
 if mode == 0 :
-  for i in tqdm(range(time * time_resolution), desc="Sim+Vis", unit="day", unit_scale=True) :
+  setupparams(plant)
+  plant.initialize()
+  for i in tqdm(range(stime * time_resolution)) :
     # Simulate
     plant.simulate(1. / time_resolution, False)
-    vis.ComputeGeometryForOrganType(pb.leaf, True)
+    vis = pb.PlantVisualiser(plant)
+    vis.SetVerbose(False)
+    vis.SetGeometryResolution(8)
+    vis.SetLeafResolution(leaf_res)
+    vis.SetAddVerticalLeafOffset(True)
+    vis.SetRandomVerticalLeafOffset(False)
+    vis.SetOffsetFrequency(4.0)
+    vis.SetVerticalLeafOffset(0.1)
+    vis.SetLeafWidthScaleFactor(0.4)
+    vis.ResetGeometry()
+    vis.ComputeGeometry()
+    organs = vis.IdentifyOrgans()
+    idmax = np.max(organs)
+    idmin = np.min(organs)
     data = cpbvis.PolydataFromPlantGeometry(vis)
-    organvis(vis,data)
-    cpbvis.WritePolydataToFile(data, output + "_leaf_" + str(i) + ".vtp")
-    vis.ComputeGeometryForOrganType(pb.stem, True)
-    data = cpbvis.PolydataFromPlantGeometry(vis)
-    organvis(vis,data)
-    cpbvis.WritePolydataToFile(data, output + "_stem_" + str(i) + ".vtp")
-    vis.ComputeGeometryForOrganType(pb.root, True)
-    data = cpbvis.PolydataFromPlantGeometry(vis)
-    organvis(vis,data)
-    cpbvis.WritePolydataToFile(data, output + "_root_" + str(i) + ".vtp")
+    cpbvis.WritePolydataToFile(data, output + "_0_" + str(i) + ".vtp")
+    #vis.ComputeGeometryForOrganType(pb.leaf, True)
+    #data = cpbvis.PolydataFromPlantGeometry(vis)
+    #organvis(vis,data)
+    #cpbvis.WritePolydataToFile(data, output + "_leaf_" + str(i) + ".vtp")
+    #vis.ComputeGeometryForOrganType(pb.stem, True)
+    #data = cpbvis.PolydataFromPlantGeometry(vis)
+    #organvis(vis,data)
+    #cpbvis.WritePolydataToFile(data, output + "_stem_" + str(i) + ".vtp")
+    #vis.ComputeGeometryForOrganType(pb.root, True)
+    #data = cpbvis.PolydataFromPlantGeometry(vis)
+    #organvis(vis,data)
+    #cpbvis.WritePolydataToFile(data, output + "_root_" + str(i) + ".vtp")
   #endfor
 elif mode == 1 :
-  plant.simulate(time, False)
+  plant.simulate(stime, False)
   vis.ResetGeometry()
   vis.ComputeGeometry()
   organs = vis.IdentifyOrgans()
@@ -168,25 +195,26 @@ elif mode == 2 :
     vis.SetLeafResolution(leaf_res)
     vis.SetAddVerticalLeafOffset(True)
     vis.SetRandomVerticalLeafOffset(False)
-    vis.SetOffsetFrequency(40.0)
-    vis.SetVerticalLeafOffset(0.2)
-    vis.SetLeafWidthScaleFactor(0.9)
+    vis.SetOffsetFrequency(4.0)
+    vis.SetVerticalLeafOffset(0.1)
+    vis.SetLeafWidthScaleFactor(0.4)
     vis.SetConfinedTo(pb.Vector3d(-10, -1.0, -23), pb.Vector3d(10, 1.0, 1.0))
-    plant.simulate(time, False)
+    plant.simulate(stime, False)
     vis.ResetGeometry()
     vis.SetVerbose(False)
     vis.ComputeGeometryForOrganType(pb.leaf, True)
     data = cpbvis.PolydataFromPlantGeometry(vis)
     organvis(vis,data)
+    unix_time = time.time()
     SendOrWrite(data, i, "leaf")
     vis.ComputeGeometryForOrganType(pb.stem, True)
     data = cpbvis.PolydataFromPlantGeometry(vis)
     organvis(vis,data)
     SendOrWrite(data, i, "stem")
-    vis.ComputeGeometryForOrganType(pb.root, True)
-    data = cpbvis.PolydataFromPlantGeometry(vis)
-    organvis(vis,data)
-    SendOrWrite(data, i, "root")
+    #vis.ComputeGeometryForOrganType(pb.root, True)
+    #data = cpbvis.PolydataFromPlantGeometry(vis)
+    #organvis(vis,data)
+    #SendOrWrite(data, unix_time, "root")
     print(output + "_" + str(i) + ".vtp")
 #end if
 
