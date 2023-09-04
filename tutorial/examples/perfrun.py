@@ -4,24 +4,28 @@ import time
 import os
 import numpy as np
 import mpi4py as mpi
+from mpi4py import MPI
 
 # check the number of MPI processes
-comm = mpi.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
+comm = MPI.COMM_WORLD
+comm_rank = comm.Get_rank()
+comm_size = comm.Get_size()
 
 # get the maximum plant count from the command line
 import sys
 n = 1000
+print(sys.argv)
 if len(sys.argv) > 1:
   n = int(sys.argv[1])
 #endif
 
 # divide the number of plants by the number of MPI processes
-n = int(n / size)
+n = int(n / comm_size)
 
 # check number of available cores on the computer
-cpu_count = os.cpu_count()
+cpu_count = int(os.cpu_count() / int(MPI.INFO_ENV.get("maxprocs")))
+
+print("Rank: ", comm_rank, " Size: ", comm_size, " CPU count: ", cpu_count, " for ", n, " runs.")
 
 # global time list
 time_list = []
@@ -50,7 +54,8 @@ async def fill_cpu ( target_num_generated : int, concurrent = True ):
   # fill the CPU with the run_example_vis_performance coroutine
   if not concurrent:
     for i in range(target_num_generated):
-      await run_example_vis_performance()
+      runtime = await run_example_vis_performance()
+      time_list.append(runtime)
     #endfor
     return
   #endif
@@ -67,20 +72,17 @@ async def fill_cpu ( target_num_generated : int, concurrent = True ):
       await asyncio.gather(*tasks)
       # extract times from the tasks
       for task in tasks:
-        time_list.append(task.result())
+        timing_result = task.result()
+        time_list.append(timing_result)
       #endfor
       # clear the list of tasks
       tasks.clear()
     #endif
   #endfor
-  # wait for all tasks to finish
-  await asyncio.gather(*tasks)
   # extract times from the tasks
   return tasks
 #enddef
 
-
-n = 1000
 # run the coroutine
 async def main():
   global cpu_count, time_list, n
@@ -96,10 +98,17 @@ async def main():
 if __name__ == "__main__":
   # run the main coroutine
   asyncio.run(main())
-  if rank == 0:
-    for i in range(1, size):
+  if comm_rank == 0:
+    print("Rank: ", comm_rank, " Size: ", comm_size, " CPU count: ", cpu_count, " for ", n, " runs.")
+    # get the times from the other processes
+    print("Getting times from other processes...")
+    for i in range(1, comm_size):
       time_list = np.append(time_list, comm.recv(source=i))
     #endfor
+    print("Got times from other processes...")
+    if len(time_list) == 0 :
+      print("Error: time_list is empty.")
+      exit(0)
     # print the total runtime
     print("Total runtime: ", time.time() - start_time, " with ", cpu_count, " cores and ", n, " tasks.")
     # time list as numpy array
@@ -114,8 +123,7 @@ if __name__ == "__main__":
     print("Maximum time: ", np.max(time_list))
     # send the time list to the root process
     #endfor
-    # save the time list to file
-    np.savetxt("time_list.txt", time_list)
+    print(time_list)
   else:
     comm.send(time_list, dest=0)
   #endif
