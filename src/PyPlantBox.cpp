@@ -728,6 +728,7 @@ PYBIND11_MODULE(plantbox, m) {
             .def_readwrite("lmaxs", &StemRandomParameter::lmaxs)
             .def_readwrite("r", &StemRandomParameter::r)
             .def_readwrite("rs", &StemRandomParameter::rs)
+            .def_readwrite("ldelay", &StemRandomParameter::ldelay)
             .def_readwrite("RotBeta", &StemRandomParameter::rotBeta)
             .def_readwrite("BetaDev", &StemRandomParameter::betaDev)
             .def_readwrite("InitBeta", &StemRandomParameter::initBeta)

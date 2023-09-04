@@ -11,7 +11,7 @@ import numpy as np
 import time
 start = time.time()
 
-filename = "../../modelparameter/structural/plant/vis_example_plant_maize.xml"
+filename = "./vis_example_plant_maize.xml"
 output = "./results/vis_plant"
 
 simtime = 28
@@ -59,10 +59,4 @@ vis.ComputeGeometryForOrganType(pb.leaf, False)
 data = cpbvis.PolydataFromPlantGeometry(vis)
 
 after_vis = time.time()
-
-# write timings to file
-with open("performance.txt", "w") as f:
-  f.write("init: " + str(after_init - start) + "\n")
-  f.write("sim: " + str(after_sim - after_init) + "\n")
-  f.write("vis: " + str(after_vis - after_sim) + "\n")
 
