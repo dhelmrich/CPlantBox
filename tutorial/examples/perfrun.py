@@ -40,9 +40,14 @@ async def run_example_vis_performance():
   runtime = asyncio.get_event_loop().time()
   # spawn in this process because it is a blocking call
   proc = await asyncio.create_subprocess_exec(
-    'python3', 'example_vis_performance.py',
-    stdout=asyncio.subprocess.DEVNULL,
-    stderr=asyncio.subprocess.DEVNULL)
+    "python3", "example_vis_performance.py " + str(int(n / cpu_count)),
+    stdout=asyncio.subprocess.PIPE,
+    stderr=asyncio.subprocess.PIPE)
+  # check output
+  stdout, stderr = await proc.communicate()
+  # print the output
+  print(f'R{comm_rank}: stdout: {stdout.decode()}')
+  print(f'R{comm_rank}: stderr: {stderr.decode()}')
   # get the time
   runtime = asyncio.get_event_loop().time() - runtime
   return runtime
@@ -66,18 +71,6 @@ async def fill_cpu ( target_num_generated : int, concurrent = True ):
     task = asyncio.create_task(run_example_vis_performance())
     # append the task to the list of tasks
     tasks.append(task)
-    # if the number of tasks is equal to the number of cores
-    if len(tasks) == cpu_count:
-      # wait for all tasks to finish
-      await asyncio.gather(*tasks)
-      # extract times from the tasks
-      for task in tasks:
-        timing_result = task.result()
-        time_list.append(timing_result)
-      #endfor
-      # clear the list of tasks
-      tasks.clear()
-    #endif
   #endfor
   # extract times from the tasks
   return tasks
@@ -88,7 +81,7 @@ async def main():
   global cpu_count, time_list, n
   """ run the task_wait_random coroutine """
   # await the task_wait_random coroutine
-  tasks = await fill_cpu(n)
+  await fill_cpu(n)
   # get the times from the tasks
   #for task in tasks:
   #  time_list.append(task.result())
