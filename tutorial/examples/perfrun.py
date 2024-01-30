@@ -23,9 +23,9 @@ if len(sys.argv) > 1:
 n = int(n / comm_size)
 
 # check number of available cores on the computer
-cpu_count = int(os.cpu_count() / int(MPI.INFO_ENV.get("maxprocs")))
+cpu_count = int(os.environ['LOCAL_NUM_CPUS']) if 'LOCAL_NUM_CPUS' in os.environ else 6
 
-print("Rank: ", comm_rank, " Size: ", comm_size, " CPU count: ", cpu_count, " for ", n, " runs.")
+print("R", comm_rank, " - Size: ", comm_size, " CPU count: ", cpu_count, " for ", n, " runs, which is ", str(int(n / cpu_count)), " consequtive")
 
 # global time list
 time_list = []
@@ -33,23 +33,25 @@ time_list = []
 # measure the total runtime
 start_time = time.time()
 
+capture_output = True
+
 # setup a coroutine that calls the example_vis_performance.py script
 async def run_example_vis_performance():
+  global capture_output
   # global time list
   # get the time
   runtime = asyncio.get_event_loop().time()
+  outpipe = asyncio.subprocess.PIPE if capture_output else asyncio.subprocess.DEVNULL
   # spawn in this process because it is a blocking call
   proc = await asyncio.create_subprocess_exec(
-    "python3", "example_vis_performance.py " + str(int(n / cpu_count)),
-    stdout=asyncio.subprocess.PIPE,
-    stderr=asyncio.subprocess.PIPE)
-  # check output
-  stdout, stderr = await proc.communicate()
-  # print the output
-  print(f'R{comm_rank}: stdout: {stdout.decode()}')
-  print(f'R{comm_rank}: stderr: {stderr.decode()}')
+    "python","example_vis_performance.py",
+    stdout=outpipe,
+    stderr=outpipe)
+  if capture_output:
+    stdout, stderr = await proc.communicate()
   # get the time
   runtime = asyncio.get_event_loop().time() - runtime
+  print("Task finished")
   return runtime
 #enddef
 
@@ -66,14 +68,22 @@ async def fill_cpu ( target_num_generated : int, concurrent = True ):
   #endif
   tasks = []
   # fill CPU with tasks in batches of cpu_count
-  for i in range(target_num_generated):
+  for i in range(cpu_count) :
+    print("Creating CPU Task ", i)
     # create a task
     task = asyncio.create_task(run_example_vis_performance())
     # append the task to the list of tasks
     tasks.append(task)
   #endfor
+  # wait for all tasks to finish
+  await asyncio.gather(*tasks)
   # extract times from the tasks
-  return tasks
+  for task in tasks:
+    timing_result = task.result()
+    time_list.append(timing_result)
+  #endfor
+  # clear the list of tasks
+  tasks.clear()
 #enddef
 
 # run the coroutine
@@ -91,6 +101,22 @@ async def main():
 if __name__ == "__main__":
   # run the main coroutine
   asyncio.run(main())
+  # print the total runtime
+  print("R", comm_rank, ": Total runtime: ", time.time() - start_time, " with ", cpu_count, " cores and ", n, " tasks.")
+  # time list as numpy array
+  time_list = np.array(time_list)
+  print("Time shape", time_list.shape)
+  print("Time sum", np.sum(time_list))
+  # print the mean time
+  print("Mean time: ", np.mean(time_list))
+  # print the standard deviation
+  print("Standard deviation: ", np.std(time_list))
+  # print the minimum time
+  print("Minimum time: ", np.min(time_list))
+  # print the maximum time
+  print("Maximum time: ", np.max(time_list))
+  np.savetxt("looptime_"+str(comm_rank)+".txt", time_list)
+  exit(0)
   if comm_rank == 0:
     print("Rank: ", comm_rank, " Size: ", comm_size, " CPU count: ", cpu_count, " for ", n, " runs.")
     # get the times from the other processes
@@ -114,9 +140,7 @@ if __name__ == "__main__":
     print("Minimum time: ", np.min(time_list))
     # print the maximum time
     print("Maximum time: ", np.max(time_list))
-    # send the time list to the root process
-    #endfor
-    print(time_list)
+    np.savetxt("times.txt", time_list)
   else:
     comm.send(time_list, dest=0)
   #endif

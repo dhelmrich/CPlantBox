@@ -13,7 +13,7 @@ start = time.time()
 
 filename = "./vis_example_plant_maize.xml"
 output = "./results/vis_plant"
-num_runs = 10
+num_runs = 1000
 
 # get number of runs from command line
 if len(sys.argv) > 1:

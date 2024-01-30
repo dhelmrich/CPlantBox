@@ -7,69 +7,65 @@ include_directories(functional)
 include_directories(visualisation)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-link_libraries (Eigen3::Eigen)
 
 include_directories(external/)
 include_directories(external/tinyxml2/)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 add_library(CPlantBox SHARED
-            structural/organparameter.cpp
-            structural/rootparameter.cpp
-			structural/seedparameter.cpp
-			structural/leafparameter.cpp
-			structural/stemparameter.cpp
-            structural/Organ.cpp
-            structural/Root.cpp
-            structural/RootDelay.cpp            
-            structural/Seed.cpp
-			structural/Stem.cpp
-			structural/Leaf.cpp
-			structural/Plant.cpp
-            structural/Organism.cpp
-            structural/Plant.cpp            
-            structural/RootSystem.cpp
-            structural/MappedOrganism.cpp
-     		structural/sdf.cpp
-            structural/SegmentAnalyser.cpp            
-            structural/tropism.cpp
-
-            structural/organparameter.h
-            structural/rootparameter.h
-			structural/seedparameter.h
-			structural/leafparameter.h
-			structural/stemparameter.h
-            structural/Organ.h
-            structural/Root.h
-            structural/RootDelay.h            
-            structural/Seed.h
-			structural/Stem.h
-			structural/Leaf.h
-			structural/Plant.h
-            structural/Organism.h
-            structural/Plant.h            
-            structural/RootSystem.h
-            structural/MappedOrganism.h
-     		structural/sdf.h
-            structural/SegmentAnalyser.h            
-            structural/tropism.h    
-			
-            functional/XylemFlux.cpp
-			functional/Photosynthesis.cpp
-			functional/Perirhizal.cpp
-
-			visualisation/Quaternion.h
-			visualisation/CatmullRomSpline.h
-			visualisation/PlantVisualiser.h
-			visualisation/PlantVisualiser.cpp
-            
-			external/tinyxml2/tinyxml2.cpp		
-      external/tinyxml2/tinyxml2.h
-			external/aabbcc/AABB.cc
-            external/gauss_legendre/gauss_legendre.cpp       
+    structural/organparameter.cpp
+    structural/rootparameter.cpp
+		structural/seedparameter.cpp
+		structural/leafparameter.cpp
+		structural/stemparameter.cpp
+    structural/Organ.cpp
+    structural/Root.cpp
+    structural/RootDelay.cpp            
+    structural/Seed.cpp
+		structural/Stem.cpp
+		structural/Leaf.cpp
+		structural/Plant.cpp
+    structural/Organism.cpp
+    structural/Plant.cpp            
+    structural/RootSystem.cpp
+    structural/MappedOrganism.cpp
+    structural/sdf.cpp
+    structural/SegmentAnalyser.cpp            
+    structural/tropism.cpp
+    structural/organparameter.h
+    structural/rootparameter.h
+		structural/seedparameter.h
+		structural/leafparameter.h
+		structural/stemparameter.h
+    structural/Organ.h
+    structural/Root.h
+    structural/RootDelay.h            
+    structural/Seed.h
+		structural/Stem.h
+		structural/Leaf.h
+		structural/Plant.h
+    structural/Organism.h
+    structural/Plant.h            
+    structural/RootSystem.h
+    structural/MappedOrganism.h
+    structural/sdf.h
+    structural/SegmentAnalyser.h            
+    structural/tropism.h    
+    functional/XylemFlux.cpp
+		functional/Photosynthesis.cpp
+		functional/Perirhizal.cpp
+		visualisation/Quaternion.h
+		visualisation/CatmullRomSpline.h
+		visualisation/PlantVisualiser.h
+		visualisation/PlantVisualiser.cpp
+		external/tinyxml2/tinyxml2.cpp		
+    external/tinyxml2/tinyxml2.h
+		external/aabbcc/AABB.cc
+    external/gauss_legendre/gauss_legendre.cpp       
 )
 
 target_link_libraries(CPlantBox 
+  PRIVATE Eigen3::Eigen
 						)
 
 set_target_properties(CPlantBox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
@@ -81,8 +77,36 @@ target_include_directories(
   PUBLIC ${CMAKE_SOURCE_DIR}/src
   PUBLIC ${CMAKE_SOURCE_DIR}/src/external
   PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
+  PRIVATE ${EIGEN3_INCLUDE_DIR}
 )
 set_target_properties(CPlantBox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+export(TARGETS CPlantBox FILE CPlantBoxConfig.cmake)
+export(PACKAGE CPlantBox)
+
+if(UNIX)
+install(TARGETS CPlantBox
+        EXPORT CPlantBoxConfig
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/external
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/visualisation
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/structural
+        )
+else()
+install(TARGETS CPlantBox
+        EXPORT CPlantBoxConfig
+        LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/${CMAKE_BUILD_TYPE}
+        RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/${CMAKE_BUILD_TYPE}
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/external
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/visualisation
+        INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/structural
+        )
+endif()
+
 #
 # 2. Make CPlantBox Pyhthon binding
 #
@@ -113,7 +137,7 @@ target_include_directories(
   PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
 )
 			
-	set_target_properties(plantbox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
+	set_target_properties(plantbox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/) 
 
 endif()
 

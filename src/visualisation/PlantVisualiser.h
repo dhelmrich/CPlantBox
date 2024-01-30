@@ -2,7 +2,7 @@
 #define _CPLANTBOX_PLANTVISUALIZER_H
 #pragma once
 
-#include "mymath.h"
+#include "structural/mymath.h"
 #include <vector>
 #include <functional>
 #include <string>
