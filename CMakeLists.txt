@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.8.12)
 project (CPlantBox)
+include(CMakePackageConfigHelpers)
 
 # set compiler options
 set(RELEASE_OPTS "-std=c++17 -fno-strict-aliasing -fstrict-overflow -fno-finite-math-only -O3 -march=native -funroll-loops -g0 ")
@@ -14,7 +15,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src/structural)
 include_directories(${PROJECT_SOURCE_DIR}/src/functional)
 include_directories(${PROJECT_SOURCE_DIR}/src/visualisation)
 include_directories(${PROJECT_SOURCE_DIR}/src/external/)
-
 # add subdirectories
 add_subdirectory(src)
 add_subdirectory(debug_test)

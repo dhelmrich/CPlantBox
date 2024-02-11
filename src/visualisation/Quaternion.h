@@ -2,6 +2,7 @@
 #define _CPLANTBOX_QUATERNION_H_
 #pragma once
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 
 #include <limits>
@@ -44,7 +45,7 @@ static inline Vector3d bindToBox(const Vector3d& a, const Vector3d& l, const Vec
  * Quaternion class with common functions for CG
  * this is for general Quaternions, but we use it for H0 and H1
 */
-class Quaternion {
+class CPLANTBOX_EXPORT Quaternion {
   public:
 
     double w{};

@@ -2,6 +2,7 @@
 #ifndef ROOTDELAY_H_
 #define ROOTDELAY_H_
 
+#include "CPlantBox/export.hpp"
 #include "Root.h"
 
 namespace CPlantBox {
@@ -14,7 +15,7 @@ class RootState;
  * Laterals emerge after a specific prefdefined delay
  * (in contrast to emerging after the apical zone reaches a predefined length)
  */
-class RootDelay :public Root
+class CPLANTBOX_EXPORT RootDelay :public Root
 {
 public:
 

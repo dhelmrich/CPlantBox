@@ -1,6 +1,7 @@
 #ifndef SEED_H_
 #define SEED_H_
 
+#include "CPlantBox/export.hpp"
 #include "Organ.h"
 #include "Organism.h"
 #include "seedparameter.h"
@@ -14,7 +15,7 @@ namespace CPlantBox {
  *
  * simulate calls the simulate method of the stem, and base roots
  */
-class Seed : public Organ
+class CPLANTBOX_EXPORT Seed : public Organ
 {
 public:
 

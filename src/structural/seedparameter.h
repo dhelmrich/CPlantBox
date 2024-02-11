@@ -2,6 +2,7 @@
 #ifndef SEEDPARAMETER_H_
 #define SEEDPARAMETER_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "organparameter.h"
 
@@ -20,7 +21,7 @@ class OrganSpecificParameter;
  *
  * The model currently rather limited, and we might replace it, if we come up with something better
  */
-class SeedSpecificParameter :public OrganSpecificParameter
+class CPLANTBOX_EXPORT SeedSpecificParameter :public OrganSpecificParameter
 {
 
 public:
@@ -63,7 +64,7 @@ public:
 /**
  * Contains a parameter set describing a plant
  */
-class SeedRandomParameter :public OrganRandomParameter {
+class CPLANTBOX_EXPORT SeedRandomParameter :public OrganRandomParameter {
 public:
 
 	SeedRandomParameter(std::shared_ptr<Organism> plant); ///< default constructor

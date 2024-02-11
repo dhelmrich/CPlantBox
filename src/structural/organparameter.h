@@ -2,6 +2,7 @@
 #ifndef ORGANPARAMETER_H_
 #define ORGANPARAMETER_H_
 
+#include "CPlantBox/export.hpp"
 #include <string>
 #include <map>
 #include <memory>
@@ -26,7 +27,7 @@ class ExponentialGrowth;
 /**
  * Parameters for a specific organ
  */
-class OrganSpecificParameter {
+class CPLANTBOX_EXPORT OrganSpecificParameter {
 public:
 
     OrganSpecificParameter(int t, double a): subType(t), a(a)  { }
@@ -49,7 +50,7 @@ public:
  *
  * The factory function copy() has to be overwritten for each specialization.
  */
-class OrganRandomParameter
+class CPLANTBOX_EXPORT OrganRandomParameter
 {
 public:
 

@@ -2,6 +2,7 @@
 #ifndef ROOT_H_
 #define ROOT_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "Organ.h"
 #include "Organism.h"
@@ -18,7 +19,7 @@ class RootState;
  * The method simulate() creates new nodes of this root, and lateral roots in the root's branching zone.
  *
  */
-class Root :public Organ
+class CPLANTBOX_EXPORT Root :public Organ
 {
 
     friend RootState;

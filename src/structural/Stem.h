@@ -1,6 +1,7 @@
 #ifndef STEM_H_
 #define STEM_H_
 
+#include "CPlantBox/export.hpp"
 #include "Organ.h"
 #include "Organism.h"
 #include "stemparameter.h"
@@ -19,7 +20,7 @@ class Plant;
  * The method simulate() creates new nodes of this stem, and lateral stems in the stem's branching zone.
  *
  */
-class Stem : public Organ
+class CPLANTBOX_EXPORT Stem : public Organ
 {
 public:
 

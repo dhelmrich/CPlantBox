@@ -570,64 +570,81 @@ std::string Organism::toString() const
  */
 void Organism::readParameters(std::string name, std::string basetag, bool fromFile, bool verbose)
 {
+  std::cout << "Trying to read: " << name << " with base tag " << basetag << std::endl;
+  std::cout << "Length of name: " << name.length() << std::endl;
+  std::cout << "First byte location: " << (int)&(name[0]) << std::endl;
 	tinyxml2::XMLDocument doc;
-	if(fromFile){doc.LoadFile(name.c_str()); //open xml file and read data
-	}else{doc.Parse((const char*)name.c_str());} //get data directly from string
-    if(doc.ErrorID() == 0) {
-        tinyxml2::XMLElement* base = doc.FirstChildElement(basetag.c_str());
-        if(base != nullptr){
-            auto p = base->FirstChildElement();
-            while((p!=nullptr) && (p->Name()!=nullptr)) {
+	if(fromFile)
+  {
+	  doc.LoadFile(name.c_str()); //open xml file and read data
+	}
+  else
+  {
+    doc.Parse((const char*)name.c_str());
+  } //get data directly from string
+  if(doc.ErrorID() == 0)
+  {
+    tinyxml2::XMLElement* base = doc.FirstChildElement(basetag.c_str());
+    if(base != nullptr)
+    {
+        auto p = base->FirstChildElement();
+        while((p!=nullptr) && (p->Name()!=nullptr)) {
 
-                std::string tagname = p->Name();
-                int ot = Organism::organTypeNumber(tagname);
-                std::shared_ptr<OrganRandomParameter> prototype;
-                if (organParam[ot].count(0)) { // is the prototype defined?
-                    prototype = organParam[ot][0];
-                } else {
-                    prototype = nullptr;
-                }
+            std::string tagname = p->Name();
+            int ot = Organism::organTypeNumber(tagname);
+            std::shared_ptr<OrganRandomParameter> prototype;
+            if (organParam[ot].count(0)) { // is the prototype defined?
+                prototype = organParam[ot][0];
+            } else {
+                prototype = nullptr;
+            }
 
-                if ((ot==0) && (prototype==nullptr)) { // read depricated xml format, in case organ is not used
-                    tagname = p->Attribute("type");
-                    ot = Organism::organTypeNumber(tagname);
-                    if (ot>0) { // tagname known?
-                        if (organParam[ot].count(0)) { // is the prototype defined?
-                            prototype = organParam[ot][0];
-                        } else {
-                            prototype = nullptr;
-                        }
+            if ((ot==0) && (prototype==nullptr)) { // read depricated xml format, in case organ is not used
+                tagname = p->Attribute("type");
+                ot = Organism::organTypeNumber(tagname);
+                if (ot>0) { // tagname known?
+                    if (organParam[ot].count(0)) { // is the prototype defined?
+                        prototype = organParam[ot][0];
                     } else {
                         prototype = nullptr;
                     }
+                } else {
+                    prototype = nullptr;
                 }
-
-                if (prototype!=nullptr) { // read prototype
-                    auto otp = prototype->copy(shared_from_this());
-                    otp->readXML(p, verbose);
-                    otp->organType = ot; // in depricated case, readXML will a give wrong value
-                    setOrganRandomParameter(otp);
-                } else { // skip prototype
-				if(verbose){
-                    std::cout << "Organism::readParameters: warning, skipping " << tagname <<
-                        ", no random parameter class defined, use initializeReader()\n" << std::flush;
-				}
-                }
-                p = p->NextSiblingElement();
-            } // while
-        } else {
-            if (basetag.compare("plant") == 0) { // try old spelling
-			if(verbose){
-                std::cout << "Organism::readParameters: plant tag was not found in xml file, retrying with Plant " << std::endl;
-			}
-                readParameters(name, "Plant", fromFile, verbose); // rerun
-                return;
             }
-            throw std::invalid_argument ("Organism::readParameters: " + std::string(basetag.c_str()) + " tag was not found in xml file");
-        }
-    } else {
-        std::cout << "Organism::readParameters: could not open file " << name << "\n" << std::flush;
+
+            if (prototype!=nullptr) { // read prototype
+                auto otp = prototype->copy(shared_from_this());
+                otp->readXML(p, verbose);
+                otp->organType = ot; // in depricated case, readXML will a give wrong value
+                setOrganRandomParameter(otp);
+            } else { // skip prototype
+		if(verbose){
+                std::cout << "Organism::readParameters: warning, skipping " << tagname <<
+                    ", no random parameter class defined, use initializeReader()\n" << std::flush;
+		}
+            }
+            p = p->NextSiblingElement();
+        } // while
     }
+    else
+    {
+      if (basetag.compare("plant") == 0)
+      { // try old spelling
+	      if(verbose)
+        {
+          std::cout << "Organism::readParameters: plant tag was not found in xml file, retrying with Plant " << std::endl;
+	      }
+        readParameters(name, "Plant", fromFile, verbose); // rerun
+        return;
+      }
+      throw std::invalid_argument ("Organism::readParameters: " + std::string(basetag.c_str()) + " tag was not found in xml file");
+    }
+  }
+  else
+  {
+    std::cout << "Organism::readParameters: could not open file " << name << "\n" << std::flush;
+  }
 }
 
 /**
@@ -650,6 +667,12 @@ void Organism::writeParameters(std::string name, std::string basetag, bool comme
     }
     xmlDoc.InsertEndChild(xmlParams);
     xmlDoc.SaveFile(name.c_str());
+}
+
+void Organism::readParametersChar(const char* name, bool fromFile, bool verbose)
+{
+  std::cout << "Trying to read: " << name << std::endl;
+  this->readParameters(std::string(name), "plant", fromFile, verbose);
 }
 
 /**

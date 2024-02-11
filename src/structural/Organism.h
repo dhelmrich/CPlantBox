@@ -2,6 +2,7 @@
 #ifndef ORGANISM_H_
 #define ORGANISM_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 
 #include "tinyxml2/tinyxml2.h"
@@ -33,7 +34,7 @@ class Seed;
  * Holds global node index and organ index counter
  * Holds random numbers generator for the organ classes
  */
-class Organism : public std::enable_shared_from_this<Organism> {
+class CPLANTBOX_EXPORT Organism : public std::enable_shared_from_this<Organism> {
 public:
 	//0: distance based, 1: delay-based carried by the parent for all lateral, 2: delay-based carried by each lateral type
 	enum DelayDefinition { dd_distance = 0, dd_time_lat = 1, dd_time_self = 2}; ///< definition of the growth delay
@@ -99,6 +100,7 @@ public:
     virtual void initializeReader() { } ///< initializes parameter reader
     virtual void readParameters(std::string name, std::string  basetag = "plant", bool fromFile = true, bool verbose = true); ///< reads all organ type parameters from a xml file
     virtual void writeParameters(std::string name, std::string basetag = "plant", bool comments = true) const; ///< write all organ type parameters into a xml file
+    void readParametersChar(const char* name, bool fromFile = true, bool verbose = true); ///< reads all organ type parameters from a xml file)
     virtual void writeRSML(std::string name) const; ///< writes a RSML file
     int getRSMLSkip() const { return rsmlSkip; } ///< skips points in the RSML output (default = 0)
     void setRSMLSkip(int skip) { assert(rsmlSkip>=0 && "rsmlSkip must be >= 0" ); rsmlSkip = skip;  } ///< skips points in the RSML output (default = 0)

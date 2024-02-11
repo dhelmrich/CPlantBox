@@ -2,6 +2,8 @@
 #define _CPLANTBOX_PLANTVISUALIZER_H
 #pragma once
 
+#include "CPlantBox/export.hpp"
+#include "CPlantBox/export.hpp"
 #include "structural/mymath.h"
 #include <vector>
 #include <functional>
@@ -27,7 +29,7 @@ namespace CPlantBox {
 #endif
 
 
-class PlantVisualiser {
+class CPLANTBOX_EXPORT PlantVisualiser {
   public:
 
 public :

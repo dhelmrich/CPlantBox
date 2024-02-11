@@ -2,6 +2,7 @@
 #ifndef ROOTSYSTEM_H_
 #define ROOTSYSTEM_H_
 
+#include "CPlantBox/export.hpp"
 #include <fstream>
 
 #include "soil.h"
@@ -24,7 +25,7 @@ class RootSystemState;
  * and offers utility functions for post processing.
  * More post processing functions can be found in the class SegmentAnalyser
  */
-class RootSystem :public Organism
+class CPLANTBOX_EXPORT RootSystem :public Organism
 {
 
     friend RootSystemState;
@@ -125,7 +126,7 @@ private:
  *
  * (*) excluding changes regarding RootSystemParameter, any RootTypeParameter, confining geometry, and soil
  */
-class RootSystemState
+class CPLANTBOX_EXPORT RootSystemState
 {
 
     friend RootSystem;
@@ -160,7 +161,7 @@ private:
  * Stores a state of the root that can be restored at a later point
  * (for RootSystem::push and RootSystem::pop)
  */
-class RootState {
+class CPLANTBOX_EXPORT RootState {
 
 public:
 

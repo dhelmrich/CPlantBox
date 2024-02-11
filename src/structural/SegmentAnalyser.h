@@ -2,6 +2,7 @@
 #ifndef SEGMENTANALYSER_H_
 #define SEGMENTANALYSER_H_
 
+#include "CPlantBox/export.hpp"
 #include "sdf.h"
 #include "Organ.h"
 #include "organparameter.h"
@@ -18,7 +19,7 @@ class MappedSegments;
 /**
  * Meshfree analysis of the root system based on signed distance functions.
  */
-class SegmentAnalyser
+class CPLANTBOX_EXPORT SegmentAnalyser
 {
 
 public:

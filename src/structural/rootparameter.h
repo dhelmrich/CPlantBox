@@ -2,6 +2,7 @@
 #ifndef ROOTPARAMETER_H_
 #define ROOTPARAMETER_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "soil.h"
 #include "growth.h"
@@ -19,7 +20,7 @@ class Organism;
 /**
  * Parameters of a specific root, its created by RootRandomParameter:realize()
  */
-class RootSpecificParameter :public OrganSpecificParameter
+class CPLANTBOX_EXPORT RootSpecificParameter :public OrganSpecificParameter
 {
 
 public:
@@ -54,7 +55,7 @@ public:
 /**
  * Contains a parameter set describing a root type
  */
-class RootRandomParameter :public OrganRandomParameter
+class CPLANTBOX_EXPORT RootRandomParameter :public OrganRandomParameter
 {
 
 public:

@@ -2,6 +2,7 @@
 #ifndef ORGAN_H_
 #define ORGAN_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 
 #include "tinyxml2/tinyxml2.h"
@@ -32,7 +33,7 @@ class Plant;
  * Information about the last time step: nodes can either move, or be created
  * Post processing and RSML output
  */
-class Organ : public std::enable_shared_from_this<Organ>
+class CPLANTBOX_EXPORT Organ : public std::enable_shared_from_this<Organ>
 {
 public:
 

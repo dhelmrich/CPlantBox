@@ -2,6 +2,7 @@
 #ifndef STEMPARAMETER_H_
 #define STEMPARAMETER_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "soil.h"
 #include "growth.h"
@@ -19,7 +20,7 @@ class Organism;
 /**
  * Parameters of a specific stem, its created by StemRandomParameter:realize()
  */
-class StemSpecificParameter :public OrganSpecificParameter
+class CPLANTBOX_EXPORT StemSpecificParameter :public OrganSpecificParameter
 {
 
 public:
@@ -56,7 +57,7 @@ public:
 /**
  * Contains a parameter set describing a stem type
  */
-class StemRandomParameter :public OrganRandomParameter
+class CPLANTBOX_EXPORT StemRandomParameter :public OrganRandomParameter
 {
 
 public:

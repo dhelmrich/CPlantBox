@@ -1,6 +1,7 @@
 #ifndef LEAF_H_
 #define LEAF_H_
 
+#include "CPlantBox/export.hpp"
 #include "Organ.h"
 #include "Organism.h"
 #include "leafparameter.h"
@@ -19,7 +20,7 @@ class Plant;
  * The method simulate() creates new nodes of this leaf, and lateral leafs in the leaf's branching zone.
  *
  */
-class Leaf : public Organ
+class CPLANTBOX_EXPORT Leaf : public Organ
 {
 public:
 

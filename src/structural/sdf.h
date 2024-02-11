@@ -2,6 +2,7 @@
 #ifndef SDF_H
 #define SDF_H
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 
 #include <iostream>
@@ -18,7 +19,7 @@ namespace CPlantBox {
  * SignedDistanceFunction is the base class of all geometries (e.g. PlantContainer).
  * Furthermore, the class is used when no geometry is set, and describes an unconstrained setting.
  */
-class SignedDistanceFunction
+class CPLANTBOX_EXPORT SignedDistanceFunction
 {
 public:
 
@@ -73,7 +74,7 @@ public:
 /**
  * PlantBox describes a rectangular box
  */
-class SDF_PlantBox : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_PlantBox : public SignedDistanceFunction
 {
 public:
 
@@ -101,7 +102,7 @@ private:
 /**
  * A Cuboid is a Quader
  **/
-class SDF_Cuboid : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_Cuboid : public SignedDistanceFunction
 {
 public:
     SDF_Cuboid() { };
@@ -120,7 +121,7 @@ public:
 /**
  * Cylindrical or square container
  */
-class SDF_PlantContainer : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_PlantContainer : public SignedDistanceFunction
 {
 public:
 
@@ -145,7 +146,7 @@ private:
 /**
  * SDF_RotateTranslate first rotates, and then translates a base geometry
  */
-class SDF_RotateTranslate :public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_RotateTranslate :public SignedDistanceFunction
 {
 public:
 
@@ -173,7 +174,7 @@ private:
 /**
  * SDF_Intersection computes the geometric intersection between several signed distance functions
  */
-class SDF_Intersection : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_Intersection : public SignedDistanceFunction
 {
 
 public:
@@ -197,7 +198,7 @@ protected:
 /**
  * SDF_Union computes the geometric union between several signed distance functions
  */
-class SDF_Union : public SDF_Intersection
+class CPLANTBOX_EXPORT SDF_Union : public SDF_Intersection
 {
 
 public:
@@ -214,7 +215,7 @@ public:
 /**
  * SDF_Difference computes the difference between the first and several othter signed distance functions
  */
-class SDF_Difference : public SDF_Intersection
+class CPLANTBOX_EXPORT SDF_Difference : public SDF_Intersection
 {
 public:
     SDF_Difference(std::vector<std::shared_ptr<SignedDistanceFunction>> sdfs) :SDF_Intersection(sdfs) { } ///< Constructs (...((sdfs_[0] \ sdfs_[1]) \ sdfs_[2])...)
@@ -230,7 +231,7 @@ public:
 /**
  * SDF_Complement computes the geometric complement (i.e. turns the geometry inside out)
  */
-class SDF_Complement : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_Complement : public SignedDistanceFunction
 {
 
 public:
@@ -251,7 +252,7 @@ private:
 /**
  * SDF_HalfPlane defines the signed distance function of a half plane
  */
-class SDF_HalfPlane : public SignedDistanceFunction
+class CPLANTBOX_EXPORT SDF_HalfPlane : public SignedDistanceFunction
 {
 public:
     SDF_HalfPlane(const Vector3d& o, const Vector3d& n_); ///< half plane by origin and normal vector

@@ -1,6 +1,7 @@
 #ifndef PLANT_H_
 #define PLANT_H_
 
+#include "CPlantBox/export.hpp"
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -30,7 +31,7 @@ namespace CPlantBox {
  * and offers utility functions for post processing
  *
  */
-class Plant :public Organism
+class CPLANTBOX_EXPORT Plant :public Organism
 {
 public:
 
@@ -45,7 +46,11 @@ public:
 
   /* parameters */
   void initializeReader() override; ///< initializes XML reader
-  void readParameters(std::string name, std::string  basetag = "plant", bool fromFile = true, bool verbose = true) override {this->initializeReader(); Organism::readParameters(name, basetag, fromFile, verbose); };
+  void readParameters(std::string name, std::string  basetag = "plant", bool fromFile = true, bool verbose = true) override
+  {
+    this->initializeReader();
+    Organism::readParameters(name, basetag, fromFile, verbose);
+  };
   void openXML(std::string name) { readParameters(name); } // old name
 
   /* Simulation */

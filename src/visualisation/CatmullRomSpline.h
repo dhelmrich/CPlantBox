@@ -1,6 +1,7 @@
 #ifndef _CPLANTBOX_CATMULLROMSPLINE_H
 #define _CPLANTBOX_CATMULLROMSPLINE_H
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "Quaternion.h"
 
@@ -11,7 +12,7 @@ namespace CPlantBox {
  * Catmull-Rom spline interpolation
  * It is used to store the Catmull-Rom splines of depth 4
 */
-class CatmullRomSpline
+class CPLANTBOX_EXPORT CatmullRomSpline
 {
   public:
   CatmullRomSpline() = default;

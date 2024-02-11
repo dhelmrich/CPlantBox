@@ -2,6 +2,7 @@
 #ifndef TROPISM_H
 #define TROPISM_H
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "Organ.h"
 #include "Organism.h"
@@ -20,7 +21,7 @@ class SignedDistanceFunction;
 /**
  * Base class for all tropism functions, e.g. Gravitropism, Plagiotropism, Exotropism...
  */
-class Tropism
+class CPLANTBOX_EXPORT Tropism
 {
 public:
 

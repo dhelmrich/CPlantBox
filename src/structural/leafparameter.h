@@ -2,6 +2,7 @@
 #ifndef LEAFPARAMETER_H_
 #define LEAFPARAMETER_H_
 
+#include "CPlantBox/export.hpp"
 #include "mymath.h"
 #include "soil.h"
 #include "organparameter.h"
@@ -16,7 +17,7 @@ class Organism;
 /**
  * Parameters of a single leaf (created by LeafSpecificParameter)
  */
-class LeafSpecificParameter : public OrganSpecificParameter
+class CPLANTBOX_EXPORT LeafSpecificParameter : public OrganSpecificParameter
 {
 public:
 
@@ -54,7 +55,7 @@ public:
 /**
  * A parameter set describing a leaf type
  */
-class LeafRandomParameter : public OrganRandomParameter
+class CPLANTBOX_EXPORT LeafRandomParameter : public OrganRandomParameter
 {
 public:
 	enum shapeTypes { shape_cylinder = 0, shape_cuboid = 1, shape_2D = 2}; ///< how is the shape of the leaf defined?, see @orgVolume and @orgVolume2Length

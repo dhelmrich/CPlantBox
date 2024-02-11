@@ -2,15 +2,20 @@
 # 1. Make CPlantBox library
 #
 
+include(GenerateExportHeader)
+
 include_directories(structural)
 include_directories(functional)
 include_directories(visualisation)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(tinyxml2 CONFIG REQUIRED)
+
 
 include_directories(external/)
 include_directories(external/tinyxml2/)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 
 add_library(CPlantBox SHARED
     structural/organparameter.cpp
@@ -58,14 +63,13 @@ add_library(CPlantBox SHARED
 		visualisation/CatmullRomSpline.h
 		visualisation/PlantVisualiser.h
 		visualisation/PlantVisualiser.cpp
-		external/tinyxml2/tinyxml2.cpp		
-    external/tinyxml2/tinyxml2.h
 		external/aabbcc/AABB.cc
     external/gauss_legendre/gauss_legendre.cpp       
 )
 
 target_link_libraries(CPlantBox 
-  PRIVATE Eigen3::Eigen
+  PUBLIC tinyxml2::tinyxml2
+  PRIVATE  Eigen3::Eigen
 						)
 
 set_target_properties(CPlantBox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/)
@@ -77,7 +81,9 @@ target_include_directories(
   PUBLIC ${CMAKE_SOURCE_DIR}/src
   PUBLIC ${CMAKE_SOURCE_DIR}/src/external
   PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
+  PUBLIC ${TINYXML2_INCLUDE_DIR}
   PRIVATE ${EIGEN3_INCLUDE_DIR}
+  
 )
 set_target_properties(CPlantBox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
@@ -140,6 +146,10 @@ target_include_directories(
 	set_target_properties(plantbox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/) 
 
 endif()
+
+generate_export_header(CPlantBox
+  EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/CPlantBox/export.hpp
+)
 
 
 

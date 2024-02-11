@@ -2,6 +2,7 @@
 #ifndef MAPPED_ROOTSYSTEM_H_
 #define MAPPED_ROOTSYSTEM_H_
 
+#include "CPlantBox/export.hpp"
 #include "RootSystem.h"
 #include "Plant.h"
 
@@ -18,7 +19,7 @@ namespace CPlantBox {
  *
  * Optionally, cuts segment along the boundaries of a rectangular grid
  */
-class MappedSegments
+class CPLANTBOX_EXPORT MappedSegments
 {
 public:
 
@@ -101,7 +102,7 @@ protected:
 /**
  * Build MappedSegmentds sequentially from a RootSystem
  */
-class MappedRootSystem : public MappedSegments, public RootSystem
+class CPLANTBOX_EXPORT MappedRootSystem : public MappedSegments, public RootSystem
 {
 public:
 
@@ -127,7 +128,7 @@ public:
 /**
  * Build MappedSegmentds sequentially from a Plant
  */
-class MappedPlant : public MappedSegments, public Plant
+class CPLANTBOX_EXPORT MappedPlant : public MappedSegments, public Plant
 {
 public:
 
