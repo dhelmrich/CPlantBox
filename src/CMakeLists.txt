@@ -9,12 +9,24 @@ include_directories(functional)
 include_directories(visualisation)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-find_package(tinyxml2 CONFIG REQUIRED)
 
+if(UNIX)
+  find_package(PkgConfig)
+  if (PKG_CONFIG_FOUND)
+    pkg_check_modules(TINYXML2 tinyxml2)
+    set(TINYXML2_INCLUDE_DIR ${TINYXML2_INCLUDE_DIRS})
+    set(TINYXML2_LIBRARY ${TINYXML2_LIBRARIES})
+  endif()
+else()
+  find_package(tinyxml2 CONFIG REQUIRED)
+  set(TINYXML2_INCLUDE_DIR ${TINYXML2_INCLUDE_DIRS})
+  set(TINYXML2_LIBRARY ${TINYXML2_LIBRARIES})
+endif()
 
 include_directories(external/)
-include_directories(external/tinyxml2/)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+#include_directories(external/tinyxml2/)
+#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 
 
 add_library(CPlantBox SHARED
@@ -68,7 +80,7 @@ add_library(CPlantBox SHARED
 )
 
 target_link_libraries(CPlantBox 
-  PUBLIC tinyxml2::tinyxml2
+  PUBLIC ${TINYXML2_LIBRARIES}
   PRIVATE  Eigen3::Eigen
 						)
 
@@ -85,7 +97,7 @@ target_include_directories(
   PRIVATE ${EIGEN3_INCLUDE_DIR}
   
 )
-set_target_properties(CPlantBox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+#set_target_properties(CPlantBox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 export(TARGETS CPlantBox FILE CPlantBoxConfig.cmake)
 export(PACKAGE CPlantBox)
@@ -93,9 +105,9 @@ export(PACKAGE CPlantBox)
 if(UNIX)
 install(TARGETS CPlantBox
         EXPORT CPlantBoxConfig
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        ARCHIVE DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
         INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src
         INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/external
         INCLUDES DESTINATION ${CMAKE_SOURCE_DIR}/src/visualisation
@@ -132,7 +144,7 @@ if(UNIX)
 	set_target_properties(plantbox PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 	# set Cplantbox to also build 
 	# add search path for the library to the python module
-	target_link_libraries(plantbox PUBLIC 
+	target_link_libraries(plantbox PRIVATE 
 				CPlantBox)
 target_include_directories(
                         plantbox
@@ -146,6 +158,8 @@ target_include_directories(
 	set_target_properties(plantbox PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/) 
 
 endif()
+
+
 
 generate_export_header(CPlantBox
   EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/CPlantBox/export.hpp

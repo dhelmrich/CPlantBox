@@ -572,7 +572,7 @@ void Organism::readParameters(std::string name, std::string basetag, bool fromFi
 {
   std::cout << "Trying to read: " << name << " with base tag " << basetag << std::endl;
   std::cout << "Length of name: " << name.length() << std::endl;
-  std::cout << "First byte location: " << (int)&(name[0]) << std::endl;
+  std::cout << "First byte location: " << &(name.data()[0]) << std::endl;
 	tinyxml2::XMLDocument doc;
 	if(fromFile)
   {
