@@ -192,8 +192,8 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
 				  point_space += organ->getNumberOfNodes() * 3 * geometry_resolution_;
 				  cell_space += (organ->getNumberOfNodes() - 1) * 6 * geometry_resolution_;
 				}
-			  point_space += (organ->getNumberOfNodes()) * 4 * 3;
-				cell_space += ((organ->getNumberOfNodes()) - 1) * 4 * 3 + 40;
+			  point_space += (leaf_resolution_) * 4 * 3;
+				cell_space += ((leaf_resolution_) - 1) * 4 * 3 + 40;
 			}
 			else
 			{
@@ -228,7 +228,8 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
   for(auto organ : organ_list)
   {
     checked_organs++;
-		if(verbose_) std::cout << "Going through organ " << organ->getId() << std::endl;
+		if(verbose_) std::cout << "Going through organ no: " << checked_organs << "/id: " << organ->getId()
+    << "(" << organ->getNumberOfNodes() << ") of " << organ_list.size() << std::endl;
 
     if((organType >= 1 && organ->organType() != organType) || organ->getNumberOfNodes() <= 1)
     {
@@ -293,6 +294,7 @@ void PlantVisualiser::ComputeGeometryForOrganType(int organType, bool clearFirst
   }
   assert(geometry_.size() % 3 == 0);
   assert(geometry_indices_.size() % 3 == 0);
+  //assert(std::count_if(geometry_.begin(), geometry_.end(), [](auto val) { return std::isnan(val); }) == 0);
 }
 
 void PlantVisualiser::ComputeGeometry()

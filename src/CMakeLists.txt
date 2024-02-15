@@ -13,20 +13,27 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 if(UNIX)
   find_package(PkgConfig)
   if (PKG_CONFIG_FOUND)
-    pkg_check_modules(TINYXML2 tinyxml2)
-    set(TINYXML2_INCLUDE_DIR ${TINYXML2_INCLUDE_DIRS})
-    set(TINYXML2_LIBRARY ${TINYXML2_LIBRARIES})
+    pkg_check_modules(TINYXML2 REQUIRED IMPORTED_TARGET tinyxml2)
+    set(TINYXML2_INCLUDE_DIR PkgConfig::TINYXML2_INCLUDE_DIRS)
+    set(TINYXML2_LIBRARY PkgConfig::TINYXML2)
+  else()
+    message(FATAL_ERROR "pkg-config not found, please install it")
   endif()
 else()
   find_package(tinyxml2 CONFIG REQUIRED)
   set(TINYXML2_INCLUDE_DIR ${TINYXML2_INCLUDE_DIRS})
-  set(TINYXML2_LIBRARY ${TINYXML2_LIBRARIES})
+  set(TINYXML2_LIBRARY ${tinyxml2_shared_targets})
+  include(${tinyxml2_shared_targets})
 endif()
 
 include_directories(external/)
 #include_directories(external/tinyxml2/)
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+
+message(STATUS "TinyXML2_LIBRARIES: ${TINYXML2_LIBRARY}")
+message(STATUS "TinyXML2_INCLUDE_DIRS: ${TINYXML2_INCLUDE_DIR}")
+message(STATUS "tinyxml2_shared_targets" ${tinyxml2_shared_targets})
 
 
 add_library(CPlantBox SHARED
@@ -80,7 +87,7 @@ add_library(CPlantBox SHARED
 )
 
 target_link_libraries(CPlantBox 
-  PUBLIC ${TINYXML2_LIBRARIES}
+  PRIVATE tinyxml2::tinyxml2
   PRIVATE  Eigen3::Eigen
 						)
 
@@ -93,7 +100,7 @@ target_include_directories(
   PUBLIC ${CMAKE_SOURCE_DIR}/src
   PUBLIC ${CMAKE_SOURCE_DIR}/src/external
   PUBLIC ${CMAKE_SOURCE_DIR}/src/visualisation
-  PUBLIC ${TINYXML2_INCLUDE_DIR}
+  PRIVATE ${TINYXML2_INCLUDE_DIR}
   PRIVATE ${EIGEN3_INCLUDE_DIR}
   
 )

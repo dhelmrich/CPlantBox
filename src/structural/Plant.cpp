@@ -59,6 +59,11 @@ void Plant::initializeReader()
 /**
  * Resets the root system: deletes all roots, sets simulation time to 0.
  */
+void Plant::readParametersChar(const char* name, bool fromFile, bool verbose)
+{
+  this->readParameters(std::string(name), "plant", fromFile, verbose);
+}
+
 void Plant::reset()
 {
     baseOrgans.clear();

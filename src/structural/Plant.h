@@ -51,6 +51,8 @@ public:
     this->initializeReader();
     Organism::readParameters(name, basetag, fromFile, verbose);
   };
+
+  void readParametersChar(const char* name, bool fromFile = true, bool verbose = true) override;
   void openXML(std::string name) { readParameters(name); } // old name
 
   /* Simulation */
