@@ -34,10 +34,16 @@ target_link_libraries(${Folder} PUBLIC CPlantBox)
 if(NOT UNIX)
 # array of possible build types
 list( APPEND CMAKE_CONFIGURATION_TYPES Debug Release )
+# change the CMAKE_BINARY_DIR to have \ instead of / for windows
+string(REPLACE "/" "\\" CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
+
 # copy dlls to build directory for each build type
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-    add_custom_command(TARGET ${Folder} PRE_LINK
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_BINARY_DIR}/src/${OUTPUTCONFIG}/CPlantBox.dll" "${CMAKE_BINARY_DIR}/debug_test/external/${OUTPUTCONFIG}/CPlantBox.dll"
+    add_custom_command(TARGET ${Folder} PRE_BUILD
+      COMMAND rm -f \"${CMAKE_BINARY_DIR}\\release_test\\external\\${OUTPUTCONFIG}\\*\" >nul 2>nul
+    )
+    add_custom_command(TARGET ${Folder} POST_BUILD
+      COMMAND copy /Y \"${CMAKE_BINARY_DIR}\\src\\${OUTPUTCONFIG}\\*\" \"${CMAKE_BINARY_DIR}\\debug_test\\external\\${OUTPUTCONFIG}\\*\" >nul 2>nul
     )
 endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
 endif()

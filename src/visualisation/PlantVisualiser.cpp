@@ -534,8 +534,8 @@ void PlantVisualiser::GenerateStemGeometry(std::shared_ptr<Organ> stem, unsigned
       geometry_node_ids_[i * geometry_resolution_ + j + point_index_offset] = stem->getNodeId(i);
       geometry_organ_id_[i * geometry_resolution_ + j + point_index_offset] = stem->getId();
 
-      geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 0 + point_index_offset*2] = i / (double)stem->getNumberOfNodes();
-      geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 1 + point_index_offset*2] = phi / (2.0 * M_PI);
+      geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 0 + point_index_offset*2uL] = i / (double)stem->getNumberOfNodes();
+      geometry_texture_coordinates_[2 * (i * geometry_resolution_ + j) + 1 + point_index_offset*2uL] = phi / (2.0 * M_PI);
     }
   }
   if(verbose_) std::cout << "Needed to move " << needed_to_move << " nodes" << std::endl;
@@ -638,7 +638,7 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
   this->geometry_.resize(std::max(static_cast<std::size_t>(p_o + point_buffer * 3), this->geometry_.size()),-1.0);
 	this->geometry_indices_.resize(std::max(static_cast<std::size_t>(c_o + index_buffer), this->geometry_indices_.size()),static_cast<unsigned int>(-1));
 	this->geometry_normals_.resize(std::max(static_cast<std::size_t>(p_o + point_buffer * 3), this->geometry_normals_.size()),-1.0);
-	this->geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3*2) + point_buffer * 2), this->geometry_texture_coordinates_.size()),-1.0);
+	this->geometry_texture_coordinates_.resize(std::max(static_cast<std::size_t>((p_o/3uL*2uL) + point_buffer * 2uL), this->geometry_texture_coordinates_.size()),-1.0);
 	this->geometry_node_ids_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_node_ids_.size()),-1);
   this->geometry_organ_id_.resize(std::max(static_cast<std::size_t>(p_o / 3 + point_buffer), this->geometry_organ_id_.size()),-1);
   if(verbose_) std::cout << "Index buffer is now " << this->geometry_indices_.size() << " long." << std::endl;
@@ -759,8 +759,8 @@ void PlantVisualiser::GenerateRadialLeafGeometry(std::shared_ptr<Leaf> leaf, uns
       geometry_normals_[p_o + 2] = up.z;
       // set the texture coordinates
       //std::cout << "t" << " ";
-      geometry_texture_coordinates_[(p_o/3*2)] = l;
-      geometry_texture_coordinates_[(p_o/3*2) + 1] = helper.texcoord(p);
+      geometry_texture_coordinates_[(p_o/3uL*2uL)] = l;
+      geometry_texture_coordinates_[(p_o/3uL*2uL) + 1uL] = helper.texcoord(p);
 			// set the node id
       //std::cout << "i" << " ";
 			geometry_node_ids_[p_o/3] = i;
